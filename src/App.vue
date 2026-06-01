@@ -5,11 +5,9 @@ import TablaAlertas from './components/Tabla.vue'
 </script>
 
 <template>
-
-  <h1>Dashboard</h1>
-
+<router-view />
   <TablaAlertas />
-  <router-view />
+  
 </template>
 
 <style>
