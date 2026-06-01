@@ -1,7 +1,7 @@
 // src/router/index.ts
 import { createRouter, createWebHistory } from 'vue-router'
-import App from '../App.vue'
 import EjemploUnoView from '../instrumentos/views/ejemploUnoView.vue'
+import HomeView from '../instrumentos/views/HomeView.vue'
 
 const routes = [
   {
@@ -12,7 +12,27 @@ const routes = [
   {
     path: '/',
     name: 'home',
-    component: App
+    component: HomeView
+  },
+  {
+    path: '/areas',
+    name: 'areas',
+    component: () => import('../instrumentos/views/AreasView.vue')
+  },
+  {
+    path: '/areas/:area',
+    name: 'subareas',
+    component: () => import('../instrumentos/views/SubareasView.vue')
+  },
+  {
+    path: '/areas/:area/subareas/:subarea',
+    name: 'sistemas',
+    component: () => import('../instrumentos/views/SistemasView.vue')
+  },
+  {
+    path: '/areas/:area/subareas/:subarea/sistemas/:sistema',
+    name: 'instrumentos',
+    component: () => import('../instrumentos/views/InstrumentosView.vue')
   }
 ]
 
