@@ -2,7 +2,6 @@
 </script>
 
 <template>
-  <h1>Bienvenido a tu aplicación, esta es la primera pagina que se muestra</h1>
   <router-view />
 </template>
 
