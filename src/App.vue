@@ -1,9 +1,14 @@
+
 <script setup lang="ts">
+
+import TablaAlertas from './components/Tabla.vue'
 </script>
 
 <template>
-  <h1>Bienvenido a tu aplicación, esta es la primera pagina que se muestra</h1>
-  <router-view />
+
+  <h1>Dashboard</h1>
+
+  <TablaAlertas />
 </template>
 
 <style>
