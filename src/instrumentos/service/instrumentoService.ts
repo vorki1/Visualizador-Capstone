@@ -26,24 +26,29 @@ export async function obtenerInstrumentos(sistema: string) {
     const response = await api.get(
         `/instrumento/sistemas/${sistema}/instrumentos`
     )
-    console.log(response)
     return response.data
 }
-
-export async function obtenerInfoInstrumento(id: number) {
-    const response = await api.get(
-        `/instrumento/info-instrumento?id=${id}`
-    )
-
-    return response.data
+export interface InformacionGeneral {
+    Identificador: number
+    Nombre_TAG: string
+    Descripcion: string
+    Area: number
+    Subarea: string
+    Sistema: string
+    TAG_OPC: string
+    Unidad_de_Ingenieria: string
 }
-
-export async function obtenerHistorico(
+export async function obtenerInfoInstrumento(id: number): Promise<InformacionGeneral> {
+    const response = await api.get(`/instrumento/${id}`)
+    console.log(response.data.informacion_general[0])
+    return response.data.informacion_general[0]
+}
+export async function obtenerHistoricoInstrumento(
     id: number,
     minutos: number
 ) {
     const response = await api.get(
-        `/instrumento/histogram?id=${id}&minutos=${minutos}`
+        `/instrumento/${id}/historico?minutos=${minutos}`
     )
 
     return response.data

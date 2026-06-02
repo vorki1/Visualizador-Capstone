@@ -27,6 +27,11 @@ const routes = [
     path: '/areas/:area/subareas/:subarea/sistemas/:sistema',
     name: 'instrumentos',
     component: () => import('../instrumentos/views/InstrumentosView.vue')
+  },
+  {
+    path: '/instrumento/:id',
+    name: 'detalle-instrumento',
+    component: () => import('../instrumentos/views/InformacionInstrumento.vue')
   }
 ]
 

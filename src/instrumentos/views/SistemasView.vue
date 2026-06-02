@@ -85,6 +85,8 @@
             <tr
               v-for="alarma in alarmasMostradas"
               :key="`${alarma.Identificador}-${alarma.Sistema}-${alarma.Tipo_Alerta}`"
+              class="fila-clickable"
+              @click="irADetalleInstrumento(alarma.Identificador)"
             >
               <td>{{ alarma.Nombre_TAG }}</td>
               <td>{{ alarma.Descripcion }}</td>
@@ -286,6 +288,10 @@ function formatearFecha(fecha: string) {
   return new Date(fecha).toLocaleString('es-CL')
 }
 
+function irADetalleInstrumento(id: number) {
+  router.push(`/instrumento/${id}`)
+}
+
 onMounted(async () => {
   sistemas.value = await obtenerSistemas(subarea)
 })
@@ -477,5 +483,13 @@ onMounted(async () => {
 
 .selector-lista::-webkit-scrollbar-thumb:hover {
   background: #b0b0b0;
+}
+.fila-clickable {
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.fila-clickable:hover {
+  background-color: #e0e0e0;
 }
 </style>
