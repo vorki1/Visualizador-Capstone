@@ -77,7 +77,7 @@
               <th>Equipo</th>
               <th>Tipo de Alarma</th>
               <th>Nivel</th>
-              <th>Inicio Alarma</th>
+              <th>Hora de Alarma</th>
             </tr>
           </thead>
 

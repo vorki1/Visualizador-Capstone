@@ -1,8 +1,13 @@
 <template>
-
   <div class="contenedor-principal">
-
     <aside class="menu-lateral">
+
+      <div
+        class="flecha-volver"
+        @click="volver"
+      >
+        ←
+      </div>
 
       <h1 class="titulo">
         Subáreas
@@ -14,27 +19,25 @@
         class="card-subarea"
         @click="abrirSubarea(subarea)"
       >
-        {{ subarea }}
-      </div>
+        <v-checkbox
+          hide-details
+          density="compact"
+          class="checkbox-subarea"
+          @click.stop
+        />
 
-      <v-btn
-        color="secondary"
-        class="mt-4"
-        @click="volver"
-      >
-        Volver
-      </v-btn>
+        <span class="texto-subarea">
+          {{ subarea }}
+        </span>
+      </div>
 
     </aside>
 
     <main class="contenido">
       <h2>Área {{ area }}</h2>
-
-      <!-- Aquí iría la tabla -->
     </main>
 
   </div>
-
 </template>
 
 <script setup lang="ts">
@@ -66,57 +69,88 @@ onMounted(async () => {
 
 <style scoped>
 
-.contenedor-principal{
-  display:flex;
-  min-height:100vh;
+.contenedor-principal {
+  display: flex;
+  min-height: 100vh;
 }
 
-.menu-lateral{
+.menu-lateral {
+  width: 420px;
+  height: 100vh;
 
-  width:320px;
+  background: #d9d9d9;
 
-  padding:20px;
+  padding: 20px;
 
-  background:#d9d9d9;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
 
-  display:flex;
-  flex-direction:column;
-  gap:20px;
-
+  overflow-y: auto;
 }
 
-.titulo{
-  text-align:center;
+.flecha-volver {
+  text-align: center;
+
+  font-size: 50px;
+  font-weight: bold;
+
+  cursor: pointer;
+
+  color: black;
+
+  margin-bottom: 10px;
 }
 
-.card-subarea{
+.titulo {
+  text-align: center;
 
-  height:100px;
+  color: #005494;
 
-  background:#005494;
-  color:white;
+  font-size: 32px;
+  font-weight: bold;
 
-  border:2px solid black;
-
-  display:flex;
-  justify-content:center;
-  align-items:center;
-
-  font-size:24px;
-
-  cursor:pointer;
+  margin-bottom: 20px;
 }
 
-.card-subarea:hover{
-  opacity:.9;
+.card-subarea {
+  min-height: 85px;
+
+  background: #005494;
+
+  border: 2px solid black;
+
+  display: flex;
+  align-items: center;
+
+  padding: 0 15px;
+
+  cursor: pointer;
 }
 
-.contenido{
+.card-subarea:hover {
+  opacity: 0.9;
+}
 
-  flex:1;
+.checkbox-subarea {
+  flex-shrink: 0;
+  margin-right: 40px;
+}
 
-  padding:30px;
+.texto-subarea {
+  flex: 1;
 
+  text-align: center;
+
+  color: white;
+
+  font-size: 22px;
+  font-weight: bold;
+}
+
+.contenido {
+  flex: 1;
+  padding: 30px;
 }
 
 </style>
