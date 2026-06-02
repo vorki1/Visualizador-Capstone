@@ -1,12 +1,10 @@
 
 <script setup lang="ts">
 
-import TablaAlertas from './components/Tabla.vue'
 </script>
 
 <template>
 <router-view />
-  <TablaAlertas />
   
 </template>
 

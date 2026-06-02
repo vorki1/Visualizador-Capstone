@@ -1,14 +1,8 @@
 // src/router/index.ts
 import { createRouter, createWebHistory } from 'vue-router'
-import EjemploUnoView from '../instrumentos/views/ejemploUnoView.vue'
 import HomeView from '../instrumentos/views/HomeView.vue'
 
 const routes = [
-  {
-    path: '/ejemplo',
-    name: 'ejemplo',
-    component: EjemploUnoView
-  },
   {
     path: '/',
     name: 'home',
