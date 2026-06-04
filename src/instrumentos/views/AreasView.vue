@@ -1,33 +1,37 @@
 <template>
-  <div class="vista-area">
+  <div class="contenedor-principal">
+    <aside class="menu-lateral">
+      <button class="flecha-volver" @click="volver">
+        ←
+      </button>
 
-    <aside class="menu-izquierdo">
       <h1 class="titulo">
         Listado de Áreas
       </h1>
 
-      <div
+      <button
         v-for="area in areas"
         :key="area"
         class="card-area"
         @click="abrirArea(area)"
       >
         Área {{ area }}
-      </div>
-
-      <v-btn
-        color="secondary"
-        class="mt-6"
-        @click="volver"
-      >
-        Volver
-      </v-btn>
+      </button>
     </aside>
 
-    <main class="contenido-derecho">
-      <!-- Aquí después va tu tabla u otro contenido -->
+    <main class="contenido">
+      <!-- Espacio para contenido futuro -->
     </main>
 
+    <div class="botones-inferiores">
+      <button class="boton-dashboard" @click="irDashboard">
+        📊 Dashboard
+      </button>
+
+      <button class="boton-treemap" @click="abrirTreemap">
+        📊 Treemap
+      </button>
+    </div>
   </div>
 </template>
 
@@ -35,58 +39,86 @@
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { obtenerAreas } from '../service/instrumentoService'
+
 const router = useRouter()
 
-const areas = ref<any[]>([])
+const areas = ref<number[]>([])
 
 function abrirArea(area: number) {
   router.push(`/areas/${area}`)
 }
-function volver() {
-  router.push('/')
+
+function abrirTreemap() {
+  router.push('/treemap')
 }
+
+function irDashboard() {
+  router.push('/dashboard')
+}
+
+function volver() {
+  router.back()
+}
+
 onMounted(async () => {
   try {
     areas.value = await obtenerAreas()
-
-    console.log(areas.value)
-  }
-  catch (error) {
+  } catch (error) {
     console.error(error)
   }
 })
 </script>
 
 <style scoped>
-.vista-area {
+.contenedor-principal {
   display: flex;
-  width: 100%;
   min-height: 100vh;
+  position: relative;
 }
 
-.menu-izquierdo {
-  width: 340px;
+.menu-lateral {
+  width: 400px;
+  min-height: 100vh;
   background: #d9d9d9;
-  padding: 25px;
+  padding: 35px 10px;
+
   display: flex;
   flex-direction: column;
   align-items: center;
+
+  overflow-y: auto;
+}
+
+.flecha-volver {
+  background: transparent;
+  border: none;
+  font-size: 42px;
+  font-weight: bold;
+  color: black;
+  cursor: pointer;
+  margin-bottom: 55px;
+  line-height: 1;
+}
+
+.flecha-volver:hover {
+  opacity: 0.7;
 }
 
 .titulo {
-  color: #45c991;
+  color: #005494;
   font-size: 32px;
-  margin-bottom: 30px;
+  font-weight: bold;
+  margin-bottom: 40px;
   text-align: center;
 }
 
 .card-area {
-  width: 260px;
-  height: 95px;
+  width: 380px;
+  height: 85px;
   background: #005494;
   color: white;
-  border: 3px solid black;
-  margin-bottom: 25px;
+  border: 2px solid black;
+  margin-bottom: 15px;
 
   display: flex;
   justify-content: center;
@@ -94,6 +126,8 @@ onMounted(async () => {
 
   font-size: 22px;
   font-weight: bold;
+  text-align: center;
+
   cursor: pointer;
 }
 
@@ -101,8 +135,41 @@ onMounted(async () => {
   opacity: 0.85;
 }
 
-.contenido-derecho {
+.contenido {
   flex: 1;
   padding: 30px;
+}
+
+.botones-inferiores {
+  position: fixed;
+  right: 35px;
+  bottom: 35px;
+
+  display: flex;
+  gap: 15px;
+}
+
+.boton-dashboard,
+.boton-treemap {
+  background: #005494;
+  color: white;
+  border: 2px solid #003f70;
+  border-radius: 14px;
+
+  padding: 18px 28px;
+
+  font-size: 20px;
+  font-weight: bold;
+
+  cursor: pointer;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.25);
+
+  transition: 0.2s ease;
+}
+
+.boton-dashboard:hover,
+.boton-treemap:hover {
+  background: #003f70;
+  transform: scale(1.03);
 }
 </style>

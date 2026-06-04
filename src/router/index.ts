@@ -14,6 +14,11 @@ const routes = [
     component: () => import('../instrumentos/views/AreasView.vue')
   },
   {
+    path: '/treemap',
+    name: 'treemap',
+    component: () => import('../instrumentos/views/TreemapView.vue')
+  },
+  {
     path: '/areas/:area',
     name: 'subareas',
     component: () => import('../instrumentos/views/SubareasView.vue')
@@ -32,7 +37,12 @@ const routes = [
     path: '/instrumento/:id',
     name: 'detalle-instrumento',
     component: () => import('../instrumentos/views/InformacionInstrumento.vue')
-  }
+  },
+  {
+  path: '/dashboard',
+  name: 'Dashboard',
+  component: () => import('../instrumentos/views/DashboardView.vue')
+}
 ]
 
 const router = createRouter({

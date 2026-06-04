@@ -53,3 +53,17 @@ export async function obtenerHistoricoInstrumento(
 
     return response.data
 }
+export async function obtenerAlertasInstrumentos() {
+  const response = await fetch('http://127.0.0.1:8000/alertas/instrumentos')
+
+  if (!response.ok) {
+    throw new Error('Error al obtener alertas de instrumentos')
+  }
+
+  return await response.json()
+}
+
+export async function obtenerUltimasAlertas() {
+  const response = await fetch('http://localhost:8000/ultimas-alertas')
+  return await response.json()
+}
