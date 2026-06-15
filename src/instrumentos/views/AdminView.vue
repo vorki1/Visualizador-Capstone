@@ -80,6 +80,7 @@
         </p>
 
         <input
+          ref="inputExcel"
           type="file"
           accept=".xlsx,.xls"
           class="input-file"
@@ -90,8 +91,12 @@
           Archivo seleccionado: {{ archivoSeleccionado.name }}
         </div>
 
-        <button class="btn-principal" disabled>
-          Subir Excel próximamente
+        <button
+          class="btn-principal"
+          :disabled="!archivoSeleccionado || importandoExcel"
+          @click="subirExcel"
+        >
+          {{ importandoExcel ? 'Importando...' : 'Subir Excel' }}
         </button>
       </section>
 
@@ -103,8 +108,12 @@
           Espacio reservado para descargar información del sistema en formato Excel.
         </p>
 
-        <button class="btn-principal" disabled>
-          Exportar Excel próximamente
+        <button
+          class="btn-principal"
+          :disabled="exportandoExcel"
+          @click="descargarExcel"
+        >
+          {{ exportandoExcel ? 'Exportando...' : 'Exportar Excel' }}
         </button>
       </section>
     </main>
@@ -117,7 +126,9 @@ import { useRouter } from 'vue-router'
 import {
   iniciarMatrizB,
   obtenerEstadoMatrizB,
-  obtenerUltimaActualizacionMatrizBase
+  obtenerUltimaActualizacionMatrizBase,
+  exportarExcel,
+  importarExcel
 } from '../service/adminService'
 
 const router = useRouter()
@@ -128,7 +139,9 @@ const mensaje = ref('')
 const ultimaActualizacion = ref('')
 const existeArchivoMetricas = ref(false)
 const archivoSeleccionado = ref<File | null>(null)
-
+const exportandoExcel = ref(false)
+const importandoExcel = ref(false)
+const inputExcel = ref<HTMLInputElement | null>(null)
 function volver() {
   router.back()
 }
@@ -180,6 +193,49 @@ function seleccionarArchivo(event: Event) {
 
   if (input.files && input.files.length > 0) {
     archivoSeleccionado.value = input.files[0]
+  } else {
+    archivoSeleccionado.value = null
+  }
+}
+async function descargarExcel() {
+  try {
+    exportandoExcel.value = true
+    mensaje.value = ''
+
+    await exportarExcel()
+
+    mensaje.value = 'Excel exportado correctamente'
+  } catch (error) {
+    console.error(error)
+    mensaje.value = 'No se pudo exportar el Excel'
+  } finally {
+    exportandoExcel.value = false
+  }
+}
+async function subirExcel() {
+  if (!archivoSeleccionado.value) {
+    mensaje.value = 'Debes seleccionar un archivo Excel'
+    return
+  }
+
+  try {
+    importandoExcel.value = true
+    mensaje.value = ''
+
+    const data = await importarExcel(archivoSeleccionado.value)
+
+    mensaje.value = data.mensaje || 'Excel importado correctamente'
+
+    archivoSeleccionado.value = null
+
+    if (inputExcel.value) {
+      inputExcel.value.value = ''
+    }
+  } catch (error) {
+    console.error(error)
+    mensaje.value = 'No se pudo importar el Excel'
+  } finally {
+    importandoExcel.value = false
   }
 }
 

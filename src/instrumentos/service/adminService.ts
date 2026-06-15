@@ -42,8 +42,20 @@ export async function importarExcel(archivo: File) {
 
 export async function exportarExcel() {
   const response = await api.get(
-    'admin/exportar-excel'
+    'admin/exportar-excel',
+    {
+      responseType: 'blob'
+    }
   )
 
-  return response.data
+  const url = window.URL.createObjectURL(new Blob([response.data]))
+
+  const link = document.createElement('a')
+  link.href = url
+  link.setAttribute('download', 'Mapeo_instrumentos_cnn.xlsx')
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+
+  window.URL.revokeObjectURL(url)
 }
