@@ -28,6 +28,7 @@ export async function obtenerInstrumentos(sistema: string) {
     )
     return response.data
 }
+
 export interface InformacionGeneral {
     Identificador: number
     Nombre_TAG: string
@@ -40,7 +41,7 @@ export interface InformacionGeneral {
 }
 export async function obtenerInfoInstrumento(id: number): Promise<InformacionGeneral> {
     const response = await api.get(`/instrumento/${id}`)
-    console.log(response.data.informacion_general[0])
+    //console.log(response.data.informacion_general[0])
     return response.data.informacion_general[0]
 }
 export async function obtenerHistoricoInstrumento(
@@ -54,16 +55,9 @@ export async function obtenerHistoricoInstrumento(
     return response.data
 }
 export async function obtenerAlertasInstrumentos() {
-  const response = await fetch('http://127.0.0.1:8000/alertas/instrumentos')
+    const response = await api.get(
+        '/alertas/tabla-alertas-instrumentos'
+    )
 
-  if (!response.ok) {
-    throw new Error('Error al obtener alertas de instrumentos')
-  }
-
-  return await response.json()
-}
-
-export async function obtenerUltimasAlertas() {
-  const response = await fetch('http://localhost:8000/ultimas-alertas')
-  return await response.json()
+    return response.data
 }

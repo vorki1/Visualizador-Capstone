@@ -1,147 +1,155 @@
 <template>
-  <div class="vista-sistemas">
-    <aside class="menu-lateral">
-      <button class="boton-volver-icono" @click="volver">
-        ←
-      </button>
+  <div v-if="cargandoAlertas" class="loading-container">
+    <v-progress-circular
+      indeterminate
+      size="70"
+      width="6"
+      color="primary"
+    />
+    <p>Cargando alertas...</p>
+  </div>
+  <div v-else>
+    <div class="vista-sistemas">
+      <aside class="menu-lateral">
+        <button class="boton-volver-icono" @click="volver">
+          ←
+        </button>
 
-      <h2 class="titulo-menu">
-        Sistemas de {{ subarea }}
-      </h2>
+        <h2 class="titulo-menu">
+          Sistemas de {{ subarea }}
+        </h2>
 
-      <div class="selector-lista">
-        <div
-          v-for="sistema in sistemas"
-          :key="sistema"
-          class="item-sistema"
-          :class="{ seleccionado: sistemasSeleccionados.includes(sistema) }"
-          @click="toggleSistema(sistema)"
-        >
-          <span class="checkbox-visual">
-            {{ sistemasSeleccionados.includes(sistema) ? '✓' : '' }}
-          </span>
+        <div class="selector-lista">
+          <div
+            v-for="sistema in sistemas"
+            :key="sistema"
+            class="item-sistema"
+            :class="{ seleccionado: sistemasSeleccionados.includes(sistema) }"
+            @click="toggleSistema(sistema)"
+          >
+            <span class="checkbox-visual">
+              {{ sistemasSeleccionados.includes(sistema) ? '✓' : '' }}
+            </span>
 
-          <span class="nombre-sistema">
-            {{ sistema }}
-          </span>
+            <span class="nombre-sistema">
+              {{ sistema }}
+            </span>
+          </div>
         </div>
-      </div>
-    </aside>
+      </aside>
 
-    <main class="contenido">
-      <h1 class="titulo-principal">
-        Área {{ area }}
-      </h1>
+      <main class="contenido">
+        <h1 class="titulo-principal">
+          Área {{ area }}
+        </h1>
 
-      <div class="panel-tabla">
-        <div class="contenedor-filtros">
-          <select v-model="filtroSensor" class="filtro-select">
-            <option value="">Sensor</option>
-            <option
-              v-for="sensor in sensoresDisponibles"
-              :key="sensor"
-              :value="sensor"
-            >
-              {{ sensor }}
-            </option>
-          </select>
+        <div class="panel-tabla">
+          <div class="contenedor-filtros">
+            <select v-model="filtroSensor" class="filtro-select">
+              <option value="">Sensor</option>
+              <option
+                v-for="sensor in sensoresDisponibles"
+                :key="sensor"
+                :value="sensor"
+              >
+                {{ sensor }}
+              </option>
+            </select>
 
-          <select v-model="filtroTipoAlarma" class="filtro-select">
-            <option value="">Tipo Alarma</option>
-            <option
-              v-for="tipo in tiposDisponibles"
-              :key="tipo"
-              :value="tipo"
-            >
-              {{ tipo }}
-            </option>
-          </select>
+            <select v-model="filtroTipoAlarma" class="filtro-select">
+              <option value="">Tipo Alarma</option>
+              <option
+                v-for="tipo in tiposDisponibles"
+                :key="tipo"
+                :value="tipo"
+              >
+                {{ tipo }}
+              </option>
+            </select>
 
-          <select v-model="filtroNivel" class="filtro-select">
-            <option value="">Nivel</option>
-            <option
-              v-for="nivel in nivelesDisponibles"
-              :key="nivel"
-              :value="nivel"
-            >
-              {{ nivel }}
-            </option>
-          </select>
+            <select v-model="filtroNivel" class="filtro-select">
+              <option value="">Nivel</option>
+              <option
+                v-for="nivel in nivelesDisponibles"
+                :key="nivel"
+                :value="nivel"
+              >
+                {{ nivel }}
+              </option>
+            </select>
+          </div>
+
+          <table class="tabla-instrumentos">
+            <thead>
+              <tr>
+                <th>Sensor</th>
+                <th>Descripción</th>
+                <th>Equipo</th>
+                <th>Tipo de Alarma</th>
+                <th>Nivel</th>
+                <th>Hora de Alarma</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <tr
+                v-for="alarma in alarmasMostradas"
+                :key="`${alarma.Identificador}-${alarma.Sistema}-${alarma.Tipo_Alerta}`"
+                class="fila-clickable"
+                @click="irADetalleInstrumento(alarma.Identificador)"
+              >
+                <td>{{ alarma.Nombre_TAG }}</td>
+                <td>{{ alarma.Descripcion }}</td>
+                <td>{{ alarma.Sistema }}</td>
+                <td>{{ alarma.Tipo_Alerta }}</td>
+
+                <td>
+                  <span
+                    class="badge-alerta"
+                    :class="claseNivel(alarma.Nivel_Alerta)"
+                  >
+                    {{ alarma.Nivel_Alerta }}
+                  </span>
+                </td>
+
+                <td>{{ formatearFecha(alarma.Fecha_Inicio_Alarma) }}</td>
+              </tr>
+
+              <tr v-if="alarmasMostradas.length === 0">
+                <td colspan="6" class="sin-datos">
+                  No hay sensores con alertas para los filtros seleccionados
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
-
-        <table class="tabla-instrumentos">
-          <thead>
-            <tr>
-              <th>Sensor</th>
-              <th>Descripción</th>
-              <th>Equipo</th>
-              <th>Tipo de Alarma</th>
-              <th>Nivel</th>
-              <th>Hora de Alarma</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            <tr
-              v-for="alarma in alarmasMostradas"
-              :key="`${alarma.Identificador}-${alarma.Sistema}-${alarma.Tipo_Alerta}`"
-              class="fila-clickable"
-              @click="irADetalleInstrumento(alarma.Identificador)"
-            >
-              <td>{{ alarma.Nombre_TAG }}</td>
-              <td>{{ alarma.Descripcion }}</td>
-              <td>{{ alarma.Sistema }}</td>
-              <td>{{ alarma.Tipo_Alerta }}</td>
-
-              <td>
-                <span
-                  class="badge-alerta"
-                  :class="claseNivel(alarma.Nivel_Alerta)"
-                >
-                  {{ alarma.Nivel_Alerta }}
-                </span>
-              </td>
-
-              <td>{{ formatearFecha(alarma.Fecha_Inicio_Alarma) }}</td>
-            </tr>
-
-            <tr v-if="alarmasMostradas.length === 0">
-              <td colspan="6" class="sin-datos">
-                No hay sensores con alertas para los filtros seleccionados
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </main>
+      </main>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import {
   obtenerSistemas,
-  obtenerInstrumentos
+  obtenerAlertasInstrumentos
 } from '../service/instrumentoService'
-
-import datosAlertas from '../../../data/tabla_alertas.json'
-
-interface Instrumento {
-  Identificador: number
-  Nombre_TAG: string
-}
 
 interface AlertaJson {
   Identificador: number
   Nombre_TAG: string
   Descripcion: string
   Unidad_de_Ingenieria: string
+  Area: number
+  Subarea: string
+  Sistema: string
   Tipo_Alerta: string
   Nivel_Alerta: string
   Fecha_Inicio_Alarma: string
   Fecha_Ultima_Actualizacion: string
+  Fecha_Fin: string | null
   Ciclos_Alarma: number
   Alarma_Activa: boolean
 }
@@ -160,6 +168,11 @@ interface AlarmaTabla {
 const route = useRoute()
 const router = useRouter()
 
+const cargandoAlertas = ref(false)
+const ultimaActualizacion = ref<Date | null>(null)
+
+let intervaloAlertas: number | undefined
+
 const area = Number(route.params.area)
 const subarea = String(route.params.subarea)
 
@@ -171,7 +184,7 @@ const filtroSensor = ref('')
 const filtroTipoAlarma = ref('')
 const filtroNivel = ref('')
 
-const alertas = datosAlertas as AlertaJson[]
+const alertas = ref<AlertaJson[]>([])
 
 const alarmasMostradas = computed(() => {
   return alarmasFiltradas.value.filter(alarma => {
@@ -207,8 +220,10 @@ function volver() {
   router.back()
 }
 
-function buscarAlertaPorSensor(idSensor: number): AlertaJson | undefined {
-  return alertas.find(alerta => alerta.Identificador === idSensor)
+function limpiarFiltros() {
+  filtroSensor.value = ''
+  filtroTipoAlarma.value = ''
+  filtroNivel.value = ''
 }
 
 async function toggleSistema(sistema: string) {
@@ -221,50 +236,53 @@ async function toggleSistema(sistema: string) {
   }
 
   limpiarFiltros()
-  await cargarAlarmas()
+  cargarAlarmas()
 }
 
-function limpiarFiltros() {
-  filtroSensor.value = ''
-  filtroTipoAlarma.value = ''
-  filtroNivel.value = ''
+async function cargarAlertasDesdeBackend() {
+  try {
+    alertas.value = await obtenerAlertasInstrumentos()
+    cargarAlarmas()
+    ultimaActualizacion.value = new Date()
+
+  } catch (error) {
+    console.error('Error al actualizar alertas:', error)
+  }
 }
 
-async function cargarAlarmas() {
+function cargarAlarmas() {
   const resultado: AlarmaTabla[] = []
 
-  for (const sistema of sistemasSeleccionados.value) {
-    const instrumentos = await obtenerInstrumentos(sistema)
+  const alertasActivas = alertas.value.filter(alerta => {
+    return (
+      alerta.Alarma_Activa &&
+      alerta.Subarea === subarea &&
+      sistemasSeleccionados.value.includes(alerta.Sistema)
+    )
+  })
 
-    instrumentos.forEach((instrumento: Instrumento) => {
-      const alerta = buscarAlertaPorSensor(instrumento.Identificador)
+  alertasActivas.forEach(alerta => {
+    const tipos = alerta.Tipo_Alerta
+      .split(',')
+      .map(tipo => tipo.trim())
 
-      if (!alerta || !alerta.Alarma_Activa) {
-        return
-      }
+    const niveles = alerta.Nivel_Alerta
+      .split(',')
+      .map(nivel => nivel.trim())
 
-      const tipos = alerta.Tipo_Alerta
-        .split(',')
-        .map(tipo => tipo.trim())
-
-      const niveles = alerta.Nivel_Alerta
-        .split(',')
-        .map(nivel => nivel.trim())
-
-      tipos.forEach((tipo, index) => {
-        resultado.push({
-          Identificador: alerta.Identificador,
-          Nombre_TAG: alerta.Nombre_TAG,
-          Descripcion: alerta.Descripcion,
-          Sistema: sistema,
-          Tipo_Alerta: tipo,
-          Nivel_Alerta: niveles[index] || niveles[0],
-          Fecha_Inicio_Alarma: alerta.Fecha_Inicio_Alarma,
-          Ciclos_Alarma: alerta.Ciclos_Alarma
-        })
+    tipos.forEach((tipo, index) => {
+      resultado.push({
+        Identificador: alerta.Identificador,
+        Nombre_TAG: alerta.Nombre_TAG,
+        Descripcion: alerta.Descripcion,
+        Sistema: alerta.Sistema,
+        Tipo_Alerta: tipo,
+        Nivel_Alerta: niveles[index] || niveles[0],
+        Fecha_Inicio_Alarma: alerta.Fecha_Inicio_Alarma,
+        Ciclos_Alarma: alerta.Ciclos_Alarma
       })
     })
-  }
+  })
 
   alarmasFiltradas.value = resultado.sort((a, b) => {
     return (
@@ -291,9 +309,32 @@ function formatearFecha(fecha: string) {
 function irADetalleInstrumento(id: number) {
   router.push(`/instrumento/${id}`)
 }
-
+const TIEMPO_ACTUALIZACION = 120000
 onMounted(async () => {
-  sistemas.value = await obtenerSistemas(subarea)
+  try {
+    cargandoAlertas.value = true
+
+    sistemas.value = await obtenerSistemas(subarea)
+    await cargarAlertasDesdeBackend()
+
+    console.log('Intervalo iniciado')
+
+    intervaloAlertas = window.setInterval(async () => {
+      console.log('Ejecutando actualización automática...')
+      await cargarAlertasDesdeBackend()
+    }, TIEMPO_ACTUALIZACION)
+
+  } catch (error) {
+    console.error('Error al cargar datos iniciales:', error)
+  } finally {
+    cargandoAlertas.value = false
+  }
+})
+
+onUnmounted(() => {
+  if (intervaloAlertas) {
+    clearInterval(intervaloAlertas)
+  }
 })
 </script>
 

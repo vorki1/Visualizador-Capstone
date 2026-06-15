@@ -98,10 +98,13 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import alertasJson from '../../../data/tabla_alertas.json'
+import {
+  obtenerAlertasInstrumentos
+} from '../service/instrumentoService'
 
 const router = useRouter()
 
+const alertas = ref<any[]>([])
 const conteosAnimados = ref({
   preventivo: 0,
   critico: 0,
@@ -134,7 +137,7 @@ function calcularConteos() {
   const sensoresCritico = new Set<string>()
   const sensoresEmergencia = new Set<string>()
 
-  alertasJson.forEach((alerta: any) => {
+  alertas.value.forEach((alerta: any) => {
     if (alerta.Alarma_Activa !== true) return
 
     const sensor = String(alerta.Nombre_TAG || alerta.Identificador || 'Sin sensor')
@@ -153,11 +156,11 @@ function calcularConteos() {
 }
 
 function generarTablaAlertas() {
-  alertasTabla.value = alertasJson
+  alertasTabla.value = alertas.value
     .filter((alerta: any) => alerta.Alarma_Activa === true)
     .map((alerta: any) => ({
       sensor: alerta.Nombre_TAG || 'Sin sensor',
-      equipo: alerta.Sistema_x || alerta.Sistema_y || 'Sin equipo',
+      equipo: alerta.Sistema || 'Sin equipo',
       tipo: formatearTexto(alerta.Tipo_Alerta),
       nivel: formatearTexto(alerta.Nivel_Alerta)
     }))
@@ -166,10 +169,10 @@ function generarTablaAlertas() {
 function generarFallasPorSubarea() {
   const conteo: Record<string, number> = {}
 
-  alertasJson.forEach((alerta: any) => {
+  alertas.value.forEach((alerta: any) => {
     if (alerta.Alarma_Activa !== true) return
 
-    const subarea = alerta.Subarea_x || alerta.Subarea_y || 'Sin subárea'
+    const subarea = alerta.Subarea || 'Sin subárea'
     conteo[subarea] = (conteo[subarea] || 0) + 1
   })
 
@@ -237,7 +240,8 @@ function cargarDashboard() {
   generarFallasPorSubarea()
 }
 
-onMounted(() => {
+onMounted(async () => {
+  alertas.value = await obtenerAlertasInstrumentos()
   cargarDashboard()
 })
 </script>

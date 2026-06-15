@@ -24,7 +24,7 @@
       No hay alertas para mostrar
     </div>
 
-    <div v-show="!cargando && !sinDatos" ref="chartRef" class="treemap"></div>
+    <div ref="chartRef" class="treemap" :class="{ oculto: cargando || sinDatos }"></div>
   </div>
 </template>
 
@@ -32,7 +32,9 @@
 import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import * as echarts from 'echarts'
-import alertasJson from '../../../data/tabla_alertas.json'
+import {
+  obtenerAlertasInstrumentos
+} from '../service/instrumentoService'
 
 const router = useRouter()
 const chartRef = ref<HTMLDivElement | null>(null)
@@ -46,7 +48,7 @@ const nivelActual = ref<'subarea' | 'sistema' | 'sensor'>('subarea')
 const subareaSeleccionada = ref('')
 const sistemaSeleccionado = ref('')
 
-const alertas = alertasJson as any[]
+const alertas = ref<any[]>([])
 
 function volver() {
   router.back()
@@ -85,19 +87,19 @@ function textoNivel(nivel: number) {
 }
 
 function obtenerSubarea(row: any) {
-  return row.Subarea_y || row.Subarea_x || row.Subarea || 'Sin subárea'
+  return row.Subarea || 'Sin subárea'
 }
 
 function obtenerSistema(row: any) {
-  return row.Sistema_y || row.Sistema_x || row.Sistema || 'Sin sistema'
+  return row.Sistema || 'Sin sistema'
 }
 
 function obtenerSensor(row: any) {
-  return row.Nombre_TAG || row.Sensor || 'Sin sensor'
+  return row.Nombre_TAG || 'Sin sensor'
 }
 
 function filtrarAlertas() {
-  return alertas.filter((row) => {
+  return alertas.value.filter((row) => {
     if (puntajeNivel(row.Nivel_Alerta) === 0) return false
 
     if (nivelActual.value === 'sistema') {
@@ -277,11 +279,17 @@ async function dibujarTreemap() {
 async function cargarTreemap() {
   try {
     cargando.value = true
+
+    alertas.value = await obtenerAlertasInstrumentos()
+
+
+    cargando.value = false
+
+    await nextTick()
     await dibujarTreemap()
   } catch (error) {
     console.error('Error cargando treemap:', error)
     sinDatos.value = true
-  } finally {
     cargando.value = false
   }
 }
@@ -382,5 +390,10 @@ h1 {
   color: #334155;
   font-size: 20px;
   font-weight: 700;
+}
+.oculto {
+  visibility: hidden;
+  position: absolute;
+  pointer-events: none;
 }
 </style>

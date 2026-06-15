@@ -39,10 +39,15 @@ const routes = [
     component: () => import('../instrumentos/views/InformacionInstrumento.vue')
   },
   {
-  path: '/dashboard',
-  name: 'Dashboard',
-  component: () => import('../instrumentos/views/DashboardView.vue')
-}
+    path: '/dashboard',
+    name: 'Dashboard',
+    component: () => import('../instrumentos/views/DashboardView.vue')
+  },
+  {
+    path: '/admin',
+    name: 'AdminView',
+    component: () => import('../instrumentos/views/AdminView.vue')
+  }
 ]
 
 const router = createRouter({

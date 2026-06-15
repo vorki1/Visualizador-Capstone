@@ -110,10 +110,10 @@ import { Line } from 'vue-chartjs'
 import {
   obtenerInfoInstrumento,
   obtenerHistoricoInstrumento,
+  obtenerAlertasInstrumentos,
   type InformacionGeneral
 } from '../service/instrumentoService'
 
-import alertasJson from '../../../data/tabla_alertas.json'
 
 ChartJS.register(
   LineElement,
@@ -143,6 +143,7 @@ const router = useRouter()
 const instrumento = ref<InformacionGeneral | null>(null)
 const historico = ref<any[]>([])
 const minutos = ref(15)
+const alertas = ref<AlertaInstrumento[]>([])
 
 const opcionesTiempo = [
   { label: '15 min', value: 15 },
@@ -154,7 +155,7 @@ const opcionesTiempo = [
 const alertasInstrumento = computed(() => {
   if (!instrumento.value) return []
 
-  return (alertasJson as AlertaInstrumento[])
+  return alertas.value
     .filter(alerta =>
       Number(alerta.Identificador) === Number(instrumento.value?.Identificador)
     )
@@ -281,8 +282,11 @@ onMounted(async () => {
     const id = Number(route.params.id)
 
     instrumento.value = await obtenerInfoInstrumento(id)
+    alertas.value = await obtenerAlertasInstrumentos()
 
     await cargarHistorico(id)
+
+    //console.log('Alertas instrumento:', alertasInstrumento.value)
   } catch (error) {
     console.error('Error cargando datos del instrumento:', error)
   }
