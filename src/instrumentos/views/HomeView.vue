@@ -8,11 +8,14 @@
       />
 
       <div class="login-box">
+        <h1 class="titulo-login">Ingreso al sistema</h1>
+
         <input
           v-model="usuario"
           type="text"
           placeholder="Usuario"
           class="input-login"
+          @keyup.enter="ingresar"
         />
 
         <input
@@ -20,14 +23,15 @@
           type="password"
           placeholder="Contraseña"
           class="input-login"
+          @keyup.enter="ingresar"
         />
 
-        <button class="btn-acceder" @click="ingresarAdmin">
-          INGRESAR ADMIN
-        </button>
-
-        <button class="btn-usuario" @click="ingresarUsuario">
-          INGRESO COMO USUARIO
+        <button
+          class="btn-acceder"
+          :disabled="cargando"
+          @click="ingresar"
+        >
+          {{ cargando ? 'INGRESANDO...' : 'INGRESAR' }}
         </button>
 
         <p v-if="error" class="error">
@@ -49,28 +53,37 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { loginUsuario } from '../service/authService'
 
 const router = useRouter()
 
 const usuario = ref('')
 const password = ref('')
 const error = ref(false)
+const cargando = ref(false)
 
-function ingresarAdmin() {
-  if (
-    usuario.value === 'ADMINCMP' &&
-    password.value === 'CMP1232026.'
-  ) {
-    localStorage.setItem('rol', 'admin')
+async function ingresar() {
+  try {
+    error.value = false
+    cargando.value = true
+
+    const data = await loginUsuario({
+      username: usuario.value,
+      password: password.value
+    })
+
+    localStorage.setItem('access_token', data.access_token)
+    localStorage.setItem('token_type', data.token_type)
+    localStorage.setItem('usuario', JSON.stringify(data.usuario))
+    localStorage.setItem('rol', data.usuario.rol)
+
     router.push('/areas')
-  } else {
+  } catch (e) {
+    console.error(e)
     error.value = true
+  } finally {
+    cargando.value = false
   }
-}
-
-function ingresarUsuario() {
-  localStorage.setItem('rol', 'usuario')
-  router.push('/areas')
 }
 </script>
 
@@ -98,32 +111,34 @@ function ingresarUsuario() {
 }
 
 .login-box {
-  margin-top: 120px;
+  margin-top: 100px;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 14px;
 }
 
+.titulo-login {
+  color: #005494;
+  font-size: 28px;
+  margin-bottom: 12px;
+}
+
 .input-login {
-  width: 260px;
-  height: 42px;
+  width: 280px;
+  height: 44px;
   padding: 0 12px;
   border: 2px solid #333;
   font-size: 15px;
 }
 
-.btn-acceder,
-.btn-usuario {
-  width: 260px;
-  height: 48px;
+.btn-acceder {
+  width: 280px;
+  height: 50px;
   cursor: pointer;
   font-size: 15px;
   font-weight: bold;
   letter-spacing: 1px;
-}
-
-.btn-acceder {
   background: #0057a8;
   color: white;
   border: 2px solid black;
@@ -133,14 +148,9 @@ function ingresarUsuario() {
   background: #0069c9;
 }
 
-.btn-usuario {
-  background: white;
-  color: #0057a8;
-  border: 2px solid #0057a8;
-}
-
-.btn-usuario:hover {
-  background: #eef6ff;
+.btn-acceder:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
 }
 
 .error {

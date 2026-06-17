@@ -61,3 +61,24 @@ export async function obtenerAlertasInstrumentos() {
 
     return response.data
 }
+
+export async function obtenerAlertas(
+  soloActivas = true,
+  page = 1,
+  limit = 100
+) {
+  const response = await api.get('/alertas/', {
+    params: {
+      solo_activas: soloActivas,
+      page,
+      limit
+    }
+  })
+
+  return response.data
+}
+
+export async function obtenerEstadisticasAlertas() {
+  const response = await api.get('/alertas/estadisticas')
+  return response.data
+}

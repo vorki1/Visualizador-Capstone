@@ -1,17 +1,7 @@
 <template>
   <v-container fluid class="areas-view">
     <v-row class="fill-height" no-gutters>
-      <!-- MENÚ LATERAL -->
       <v-col cols="12" md="4" lg="3" class="menu-lateral">
-        <v-btn
-          icon
-          variant="text"
-          class="flecha-volver"
-          @click="volver"
-        >
-          ←
-        </v-btn>
-
         <h1 class="titulo">Listado de Áreas</h1>
 
         <v-btn
@@ -31,7 +21,7 @@
           class="mt-6 boton-menu"
           @click="irAdmin"
         >
-          ⚙️ Panel Admin
+          ⚙️ Panel de Administración
         </v-btn>
 
         <v-btn
@@ -44,9 +34,17 @@
         </v-btn>
       </v-col>
 
-      <!-- CONTENIDO -->
       <v-col cols="12" md="8" lg="9" class="contenido">
-        <!-- Espacio para contenido futuro -->
+        <div class="bienvenida">
+          <h2>Visualizador Operacional</h2>
+          <p>Selecciona un área para revisar subáreas, sistemas e instrumentos.</p>
+
+          <p v-if="usuarioActual" class="usuario">
+            Sesión iniciada como:
+            <strong>{{ usuarioActual.nombre }}</strong>
+            <span>({{ usuarioActual.rol }})</span>
+          </p>
+        </div>
 
         <div class="botones-inferiores">
           <v-btn
@@ -66,6 +64,14 @@
           >
             📊 Treemap
           </v-btn>
+          <v-btn
+            color="primary"
+            size="large"
+            class="boton-inferior"
+            @click="irAlertasGlobales"
+          >
+            🚨 Sábana de Alertas
+          </v-btn>
         </div>
       </v-col>
     </v-row>
@@ -77,13 +83,33 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { obtenerAreas } from '../service/instrumentoService'
 
+interface Usuario {
+  id: number
+  username: string
+  nombre: string
+  rol: string
+  activo: boolean
+}
+
 const router = useRouter()
 
 const areas = ref<number[]>([])
+const usuarioActual = ref<Usuario | null>(null)
 
 const esAdmin = computed(() => {
-  return localStorage.getItem('rol') === 'admin'
+  return usuarioActual.value?.rol === 'admin'
 })
+
+function cargarUsuario() {
+  const usuarioStorage = localStorage.getItem('usuario')
+
+  if (!usuarioStorage) {
+    usuarioActual.value = null
+    return
+  }
+
+  usuarioActual.value = JSON.parse(usuarioStorage)
+}
 
 function abrirArea(area: number) {
   router.push(`/areas/${area}`)
@@ -96,21 +122,24 @@ function abrirTreemap() {
 function irDashboard() {
   router.push('/dashboard')
 }
-
+function irAlertasGlobales() {
+  router.push('/alertas-globales')
+}
 function irAdmin() {
   router.push('/admin')
 }
 
 function cerrarSesion() {
+  localStorage.removeItem('access_token')
+  localStorage.removeItem('token_type')
+  localStorage.removeItem('usuario')
   localStorage.removeItem('rol')
   router.push('/')
 }
 
-function volver() {
-  router.back()
-}
-
 onMounted(async () => {
+  cargarUsuario()
+
   try {
     areas.value = await obtenerAreas()
   } catch (error) {
@@ -129,21 +158,11 @@ onMounted(async () => {
 .menu-lateral {
   min-height: 100vh;
   background: #d9d9d9;
-  padding: 35px 16px;
-
+  padding: 55px 16px 35px;
   display: flex;
   flex-direction: column;
   align-items: center;
-
   overflow-y: auto;
-}
-
-.flecha-volver {
-  font-size: 42px;
-  font-weight: bold;
-  color: black;
-  margin-bottom: 45px;
-  line-height: 1;
 }
 
 .titulo {
@@ -158,11 +177,9 @@ onMounted(async () => {
   min-height: 85px;
   max-width: 380px;
   margin-bottom: 15px;
-
   background: #005494 !important;
   color: white !important;
   border: 2px solid black;
-
   font-size: 22px;
   font-weight: bold;
   border-radius: 0;
@@ -182,14 +199,32 @@ onMounted(async () => {
 .contenido {
   position: relative;
   min-height: 100vh;
-  padding: 30px;
+  padding: 40px;
+}
+
+.bienvenida {
+  max-width: 720px;
+}
+
+.bienvenida h2 {
+  color: #005494;
+  font-size: 34px;
+  margin-bottom: 10px;
+}
+
+.bienvenida p {
+  color: #333;
+  font-size: 18px;
+}
+
+.usuario {
+  margin-top: 20px;
 }
 
 .botones-inferiores {
   position: fixed;
   right: 35px;
   bottom: 35px;
-
   display: flex;
   gap: 15px;
 }
@@ -203,11 +238,10 @@ onMounted(async () => {
   box-shadow: 0 6px 14px rgba(0, 0, 0, 0.25);
 }
 
-/* Tablet y celular */
 @media (max-width: 960px) {
   .menu-lateral {
     min-height: auto;
-    padding: 28px 18px;
+    padding: 32px 18px;
   }
 
   .contenido {
@@ -220,7 +254,6 @@ onMounted(async () => {
     left: 16px;
     right: 16px;
     bottom: 18px;
-
     justify-content: center;
     flex-wrap: wrap;
   }
@@ -231,13 +264,7 @@ onMounted(async () => {
   }
 }
 
-/* Celular pequeño */
 @media (max-width: 480px) {
-  .flecha-volver {
-    margin-bottom: 25px;
-    font-size: 36px;
-  }
-
   .titulo {
     margin-bottom: 28px;
   }

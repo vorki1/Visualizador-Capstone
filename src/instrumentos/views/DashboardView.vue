@@ -161,13 +161,74 @@
         </v-card>
       </v-col>
     </v-row>
+    <v-row class="mt-6">
+      <v-col cols="12" md="4">
+        <v-card class="estadistica-card" elevation="4" color="white">
+          <v-card-title>Sensores analizados</v-card-title>
+
+          <v-card-text>
+            <h2>
+              {{ estadisticas?.sensores?.con_fallas ?? 0 }}
+              /
+              {{ estadisticas?.sensores?.total ?? 0 }}
+            </h2>
+
+            <p>
+              sensores con fallas del total analizado
+            </p>
+          </v-card-text>
+        </v-card>
+      </v-col>
+
+      <v-col cols="12" md="4">
+        <v-card class="estadistica-card" elevation="4" color="white">
+          <v-card-title>Sistema con más alertas</v-card-title>
+
+          <v-card-text>
+            <h2>
+              {{ estadisticas?.sistema_mas_alertas?.sistema || 'Sin alertas' }}
+            </h2>
+
+            <p>
+              {{ estadisticas?.sistema_mas_alertas?.cantidad_alertas ?? 0 }}
+              alertas activas
+            </p>
+          </v-card-text>
+        </v-card>
+      </v-col>
+
+      <v-col cols="12" md="4">
+        <v-card class="estadistica-card" elevation="4" color="white">
+          <v-card-title>Distribución de alertas</v-card-title>
+
+          <v-card-text>
+            <div class="lista-alertas-estadisticas">
+              <div>
+                <span>Preventivas</span>
+                <strong>{{ estadisticas?.alertas?.preventivas ?? 0 }}</strong>
+              </div>
+
+              <div>
+                <span>Críticas</span>
+                <strong>{{ estadisticas?.alertas?.criticas ?? 0 }}</strong>
+              </div>
+
+              <div>
+                <span>Emergencias</span>
+                <strong>{{ estadisticas?.alertas?.emergencias ?? 0 }}</strong>
+              </div>
+            </div>
+          </v-card-text>
+        </v-card>
+      </v-col>
+    </v-row>
   </v-container>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { obtenerAlertasInstrumentos } from '../service/instrumentoService'
+import { obtenerAlertasInstrumentos, obtenerEstadisticasAlertas } from '../service/instrumentoService'
 
 const router = useRouter()
 
@@ -182,6 +243,7 @@ const conteosAnimados = ref({
 
 const alertasTabla = ref<any[]>([])
 const fallasPorSubarea = ref<any[]>([])
+const estadisticas = ref<any | null>(null)
 
 const alertasTablaFiltrada = computed(() => {
   if (!filtroNivelTabla.value) {
@@ -355,6 +417,8 @@ function cargarDashboard() {
 
 onMounted(async () => {
   alertas.value = await obtenerAlertasInstrumentos()
+  estadisticas.value = await obtenerEstadisticasAlertas()
+  console.log(estadisticas.value)
   cargarDashboard()
 })
 </script>
@@ -656,5 +720,29 @@ onMounted(async () => {
     font-size: 12px;
     padding: 8px 6px !important;
   }
+}
+.estadistica-card {
+  border: 2px solid #d1d5db;
+  border-radius: 16px;
+  min-height: 150px;
+}
+
+.estadistica-card :deep(.v-card-title) {
+  color: #005494;
+  font-size: 20px;
+  font-weight: 900;
+}
+
+.estadistica-card h2 {
+  color: #1e293b;
+  font-size: 34px;
+  font-weight: 900;
+  margin-bottom: 8px;
+}
+
+.estadistica-card p {
+  color: #64748b;
+  font-size: 16px;
+  font-weight: 700;
 }
 </style>
