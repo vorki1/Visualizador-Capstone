@@ -1,110 +1,179 @@
 <template>
-  <div class="dashboard">
-    <div class="barra-superior">
-      <button class="flecha-volver" @click="volver">←</button>
-      <span class="estado-linea">● En línea</span>
-    </div>
+  <v-container fluid class="dashboard">
+    <v-row align="center" justify="space-between" class="mb-6">
+      <v-col cols="auto">
+        <v-btn icon variant="text" class="flecha-volver" @click="volver">
+          ←
+        </v-btn>
+      </v-col>
 
-    <header class="encabezado">
-      <h1>Monitor de alarmas</h1>
-      <p>Resumen de sensores con alertas activas</p>
-    </header>
+      <v-col cols="auto">
+        <v-chip color="green" variant="tonal" size="large">
+          ● En línea
+        </v-chip>
+      </v-col>
+    </v-row>
 
-    <section class="contenedor-kpis">
-      <div class="kpi-card preventivo">
-        <p class="kpi-label">Sensores en preventivo</p>
-        <h2 :class="{ cero: conteosAnimados.preventivo === 0 }">
-          {{ conteosAnimados.preventivo }}
-        </h2>
-      </div>
+    <v-row class="mb-6">
+      <v-col cols="12">
+        <h1 class="titulo">Monitor de alarmas</h1>
+        <p class="subtitulo">Resumen de sensores con alertas activas</p>
+      </v-col>
+    </v-row>
 
-      <div class="kpi-card critico">
-        <p class="kpi-label">Sensores en crítico</p>
-        <h2 :class="{ cero: conteosAnimados.critico === 0 }">
-          {{ conteosAnimados.critico }}
-        </h2>
-      </div>
+    <v-row class="mb-6">
+      <v-col cols="12" sm="6" md="4">
+        <v-card
+          class="kpi-card preventivo"
+          :class="{ activa: filtroNivelTabla === 'PREVENTIVO' }"
+          elevation="4"
+          color="white"
+          @click="filtrarPorNivel('PREVENTIVO')"
+        >
+          <v-card-text>
+            <p class="kpi-label">Alertas en preventivo</p>
+            <h2 :class="{ cero: conteosAnimados.preventivo === 0 }">
+              {{ conteosAnimados.preventivo }}
+            </h2>
+          </v-card-text>
+        </v-card>
+      </v-col>
 
-      <div class="kpi-card emergencia">
-        <p class="kpi-label">Sensores en emergencia</p>
-        <h2 :class="{ cero: conteosAnimados.emergencia === 0 }">
-          {{ conteosAnimados.emergencia }}
-        </h2>
-      </div>
-    </section>
+      <v-col cols="12" sm="6" md="4">
+        <v-card
+          class="kpi-card critico"
+          :class="{ activa: filtroNivelTabla === 'CRITICO' }"
+          elevation="4"
+          color="white"
+          @click="filtrarPorNivel('CRITICO')"
+        >
+          <v-card-text>
+            <p class="kpi-label">Alertas en crítico</p>
+            <h2 :class="{ cero: conteosAnimados.critico === 0 }">
+              {{ conteosAnimados.critico }}
+            </h2>
+          </v-card-text>
+        </v-card>
+      </v-col>
 
-    <section class="zona-inferior">
-      <section class="panel-tabla">
-        <div class="cabecera-tabla">
-          <h2>Alertas de la planta</h2>
-        </div>
+      <v-col cols="12" sm="6" md="4">
+        <v-card
+          class="kpi-card emergencia"
+          :class="{ activa: filtroNivelTabla === 'EMERGENCIA' }"
+          elevation="4"
+          color="white"
+          @click="filtrarPorNivel('EMERGENCIA')"
+        >
+          <v-card-text>
+            <p class="kpi-label">Alertas en emergencia</p>
+            <h2 :class="{ cero: conteosAnimados.emergencia === 0 }">
+              {{ conteosAnimados.emergencia }}
+            </h2>
+          </v-card-text>
+        </v-card>
+      </v-col>
+    </v-row>
 
-        <div class="contenedor-tabla">
-          <table>
-            <thead>
-              <tr>
-                <th>Nombre Sensor</th>
-                <th>Equipo</th>
-                <th>Tipo de falla</th>
-                <th>Nivel de falla</th>
-              </tr>
-            </thead>
+    <v-row>
+      <v-col cols="12" lg="7">
+        <v-card class="panel-card" elevation="4" color="white">
+          <v-card-title class="panel-title">
+            Alertas de la planta
 
-            <tbody>
-              <tr v-for="(alerta, index) in alertasTabla" :key="index">
-                <td>{{ alerta.sensor }}</td>
-                <td>{{ alerta.equipo }}</td>
-                <td>{{ alerta.tipo }}</td>
-                <td>
-                  <span class="badge-nivel" :class="claseNivel(alerta.nivel)">
-                    {{ alerta.nivel }}
-                  </span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </section>
+            <v-chip
+              v-if="filtroNivelTabla"
+              size="small"
+              class="chip-filtro"
+              closable
+              @click:close="limpiarFiltroNivel"
+            >
+              Filtro: {{ filtroNivelTabla }}
+            </v-chip>
+          </v-card-title>
 
-      <section class="panel-subareas">
-        <div class="cabecera-subareas">
-          <h2>Fallas por subárea</h2>
-        </div>
+          <v-card-text>
+            <div class="contenedor-tabla">
+              <v-table fixed-header height="390" class="tabla-alertas">
+                <thead>
+                  <tr>
+                    <th>Nombre Sensor</th>
+                    <th>Equipo</th>
+                    <th>Tipo de falla</th>
+                    <th>Nivel</th>
+                    <th>Hora</th>
+                  </tr>
+                </thead>
 
-        <div class="lista-subareas">
-          <div
-            v-for="(subarea, index) in fallasPorSubarea"
-            :key="subarea.nombre"
-            class="fila-subarea"
-          >
-            <span class="nombre-subarea">{{ subarea.nombre }}</span>
+                <tbody>
+                  <tr
+                    v-for="(alerta, index) in alertasTablaFiltrada"
+                    :key="index"
+                  >
+                    <td>{{ alerta.sensor }}</td>
+                    <td>{{ alerta.equipo }}</td>
+                    <td>{{ alerta.tipo }}</td>
+                    <td>
+                      <v-chip size="small" :class="claseNivel(alerta.nivel)">
+                        {{ alerta.nivel }}
+                      </v-chip>
+                    </td>
+                    <td>{{ formatearFecha(alerta.fecha) }}</td>
+                  </tr>
 
-            <div class="barra-contenedor">
-              <div
-                class="barra-progreso"
-                :class="`color-${index % 5}`"
-                :style="{ width: `${subarea.porcentaje}%` }"
-              ></div>
+                  <tr v-if="alertasTablaFiltrada.length === 0">
+                    <td colspan="5" class="sin-datos">
+                      No hay alertas para el filtro seleccionado
+                    </td>
+                  </tr>
+                </tbody>
+              </v-table>
             </div>
+          </v-card-text>
+        </v-card>
+      </v-col>
 
-            <strong>{{ subarea.cantidad }}</strong>
-          </div>
-        </div>
-      </section>
-    </section>
-  </div>
+      <v-col cols="12" lg="5">
+        <v-card class="panel-card" elevation="4" color="white">
+          <v-card-title class="panel-title">
+            Fallas por subárea
+          </v-card-title>
+
+          <v-card-text>
+            <div class="lista-subareas">
+              <div
+                v-for="(subarea, index) in fallasPorSubarea"
+                :key="subarea.nombre"
+                class="fila-subarea"
+              >
+                <span class="nombre-subarea">{{ subarea.nombre }}</span>
+
+                <v-progress-linear
+                  :model-value="subarea.porcentaje"
+                  height="18"
+                  rounded
+                  :class="`barra-${index % 5}`"
+                />
+
+                <strong>{{ subarea.cantidad }}</strong>
+              </div>
+            </div>
+          </v-card-text>
+        </v-card>
+      </v-col>
+    </v-row>
+  </v-container>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import {
-  obtenerAlertasInstrumentos
-} from '../service/instrumentoService'
+import { obtenerAlertasInstrumentos } from '../service/instrumentoService'
 
 const router = useRouter()
 
 const alertas = ref<any[]>([])
+const filtroNivelTabla = ref('')
+
 const conteosAnimados = ref({
   preventivo: 0,
   critico: 0,
@@ -114,8 +183,31 @@ const conteosAnimados = ref({
 const alertasTabla = ref<any[]>([])
 const fallasPorSubarea = ref<any[]>([])
 
+const alertasTablaFiltrada = computed(() => {
+  if (!filtroNivelTabla.value) {
+    return alertasTabla.value
+  }
+
+  return alertasTabla.value.filter((alerta: any) => {
+    return normalizarTexto(alerta.nivel).includes(filtroNivelTabla.value)
+  })
+})
+
 function volver() {
   router.back()
+}
+
+function filtrarPorNivel(nivel: string) {
+  if (filtroNivelTabla.value === nivel) {
+    filtroNivelTabla.value = ''
+    return
+  }
+
+  filtroNivelTabla.value = nivel
+}
+
+function limpiarFiltroNivel() {
+  filtroNivelTabla.value = ''
 }
 
 function normalizarTexto(valor: any) {
@@ -130,6 +222,23 @@ function formatearTexto(valor: any) {
   return String(valor || '')
     .trim()
     .replaceAll('_', ' ')
+}
+
+function formatearFecha(fecha: string) {
+  if (!fecha) return 'Sin fecha'
+
+  const fechaConvertida = new Date(fecha)
+
+  if (Number.isNaN(fechaConvertida.getTime())) {
+    return 'Fecha inválida'
+  }
+
+  return fechaConvertida.toLocaleString('es-CL', {
+    day: '2-digit',
+    month: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit'
+  })
 }
 
 function calcularConteos() {
@@ -162,8 +271,12 @@ function generarTablaAlertas() {
       sensor: alerta.Nombre_TAG || 'Sin sensor',
       equipo: alerta.Sistema || 'Sin equipo',
       tipo: formatearTexto(alerta.Tipo_Alerta),
-      nivel: formatearTexto(alerta.Nivel_Alerta)
+      nivel: formatearTexto(alerta.Nivel_Alerta),
+      fecha: alerta.Fecha_Inicio_Alarma
     }))
+    .sort((a: any, b: any) => {
+      return new Date(b.fecha).getTime() - new Date(a.fecha).getTime()
+    })
 }
 
 function generarFallasPorSubarea() {
@@ -253,67 +366,50 @@ onMounted(async () => {
   background: #f8fafc;
 }
 
-.barra-superior {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 25px;
-}
-
 .flecha-volver {
-  background: transparent;
-  border: none;
   font-size: 42px;
   font-weight: bold;
-  color: black;
-  cursor: pointer;
+  color: black !important;
   line-height: 1;
 }
 
-.estado-linea {
-  background: #dcfce7;
-  color: #166534;
-  border: 1px solid #86efac;
-  padding: 12px 24px;
-  border-radius: 999px;
-  font-weight: 900;
-  font-size: 17px;
-}
-
-.encabezado {
-  margin-bottom: 35px;
-}
-
-.encabezado h1 {
+.titulo {
   color: #005494;
-  font-size: 38px;
+  font-size: clamp(28px, 5vw, 38px);
   font-weight: 900;
   margin: 0;
 }
 
-.encabezado p {
+.subtitulo {
   color: #334155;
   font-size: 18px;
   margin-top: 10px;
 }
 
-.contenedor-kpis {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 18px;
-  margin-bottom: 32px;
+.kpi-card,
+.panel-card {
+  background: white !important;
+  color: #1e293b !important;
 }
 
 .kpi-card {
-  background: white;
   border-radius: 16px;
-  padding: 24px 28px;
-  min-height: 80px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  min-height: 130px;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.kpi-card:hover {
+  transform: translateY(-3px);
+}
+
+.kpi-card.activa {
+  box-shadow: 0 0 0 4px rgba(0, 84, 148, 0.22) !important;
+  transform: translateY(-3px);
 }
 
 .kpi-label {
-  color: #334155;
+  color: #334155 !important;
   font-size: 16px;
   font-weight: 900;
   margin-bottom: 12px;
@@ -327,7 +423,7 @@ onMounted(async () => {
 }
 
 .kpi-card h2.cero {
-  color: black;
+  color: black !important;
 }
 
 .preventivo {
@@ -354,92 +450,137 @@ onMounted(async () => {
   color: #dc2626;
 }
 
-.zona-inferior {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 28px;
-  align-items: stretch;
-}
-
-.panel-tabla,
-.panel-subareas {
-  background: white;
+.panel-card {
   border: 2px solid #d1d5db;
   border-radius: 16px;
-  padding: 22px;
-  height: 500px;
-  box-sizing: border-box;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.07);
+  min-height: 500px;
 }
 
-.cabecera-tabla,
-.cabecera-subareas {
-  height: 36px;
-  margin-bottom: 18px;
-}
-
-.cabecera-tabla h2,
-.cabecera-subareas h2 {
-  color: #005494;
+.panel-title {
+  color: #005494 !important;
   font-size: 24px;
-  margin: 0;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.chip-filtro {
+  background: #005494 !important;
+  color: white !important;
+  font-weight: 900;
 }
 
 .contenedor-tabla {
-  max-height: 390px;
-  overflow-y: auto;
-}
-
-table {
   width: 100%;
-  border-collapse: collapse;
+  overflow-x: hidden;
 }
 
-thead {
-  position: sticky;
-  top: 0;
-  background: #005494;
-  z-index: 1;
+.tabla-alertas {
+  width: 100%;
+  table-layout: fixed;
+  background: white !important;
+  color: #1e293b !important;
 }
 
-th {
-  color: white;
-  text-align: left;
-  padding: 13px 14px;
-  font-size: 14px;
+:deep(.v-table) {
+  background: white !important;
+  color: #1e293b !important;
 }
 
-td {
-  padding: 13px 14px;
-  border-bottom: 1px solid #e5e7eb;
-  color: #1e293b;
-  font-size: 14px;
+:deep(.v-table__wrapper) {
+  background: white !important;
+  overflow-x: hidden !important;
+}
+
+:deep(table) {
+  width: 100%;
+  table-layout: fixed;
+  background: white !important;
+}
+
+:deep(thead) {
+  background: #005494 !important;
+}
+
+:deep(th) {
+  background: #005494 !important;
+  color: white !important;
+  font-weight: 800 !important;
+  white-space: normal !important;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  padding: 10px 8px !important;
+  font-size: 13px;
+}
+
+:deep(td) {
+  background: white !important;
+  color: #1e293b !important;
+  font-size: 13px;
   font-weight: 600;
+  white-space: normal !important;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  border-bottom: 1px solid #e5e7eb !important;
+  padding: 10px 8px !important;
 }
 
-.badge-nivel {
-  padding: 6px 12px;
-  border-radius: 999px;
-  color: white;
-  font-weight: 900;
-  font-size: 12px;
+:deep(th:nth-child(1)),
+:deep(td:nth-child(1)) {
+  width: 34%;
+}
+
+:deep(th:nth-child(2)),
+:deep(td:nth-child(2)) {
+  width: 12%;
+}
+
+:deep(th:nth-child(3)),
+:deep(td:nth-child(3)) {
+  width: 20%;
+}
+
+:deep(th:nth-child(4)),
+:deep(td:nth-child(4)) {
+  width: 18%;
+}
+
+:deep(th:nth-child(5)),
+:deep(td:nth-child(5)) {
+  width: 16%;
+}
+
+.sin-datos {
+  text-align: center !important;
+  color: #64748b !important;
+  padding: 30px !important;
+  font-weight: 800;
 }
 
 .nivel-preventivo {
-  background: #facc15;
-  color: #1f2937;
+  background: #facc15 !important;
+  color: #1f2937 !important;
+  font-weight: 900;
 }
 
 .nivel-critico {
-  background: #f97316;
+  background: #f97316 !important;
+  color: white !important;
+  font-weight: 900;
 }
 
 .nivel-emergencia {
-  background: #dc2626;
+  background: #dc2626 !important;
+  color: white !important;
+  font-weight: 900;
 }
 
 .nivel-sin-alerta {
-  background: #64748b;
+  background: #64748b !important;
+  color: white !important;
+  font-weight: 900;
 }
 
 .lista-subareas {
@@ -459,57 +600,61 @@ td {
 }
 
 .nombre-subarea {
-  color: #334155;
+  color: #334155 !important;
   font-weight: 900;
 }
 
-.barra-contenedor {
-  height: 18px;
-  background: #e5e7eb;
-  border-radius: 999px;
-  overflow: hidden;
-}
-
-.barra-progreso {
-  height: 100%;
-  border-radius: 999px;
-  transition: width 0.8s ease;
-}
-
-.color-0 {
-  background: #dc2626;
-}
-
-.color-1 {
-  background: #f97316;
-}
-
-.color-2 {
-  background: #facc15;
-}
-
-.color-3 {
-  background: #005494;
-}
-
-.color-4 {
-  background: #2563eb;
-}
-
 .fila-subarea strong {
-  color: #1e293b;
+  color: #1e293b !important;
   font-size: 16px;
 }
 
-@media (max-width: 1100px) {
-  .zona-inferior {
-    grid-template-columns: 1fr;
-  }
+:deep(.v-progress-linear) {
+  background: #e5e7eb !important;
 }
 
-@media (max-width: 900px) {
-  .contenedor-kpis {
+.barra-0 :deep(.v-progress-linear__determinate) {
+  background: #dc2626 !important;
+}
+
+.barra-1 :deep(.v-progress-linear__determinate) {
+  background: #f97316 !important;
+}
+
+.barra-2 :deep(.v-progress-linear__determinate) {
+  background: #facc15 !important;
+}
+
+.barra-3 :deep(.v-progress-linear__determinate) {
+  background: #005494 !important;
+}
+
+.barra-4 :deep(.v-progress-linear__determinate) {
+  background: #2563eb !important;
+}
+
+@media (max-width: 600px) {
+  .dashboard {
+    padding: 18px;
+  }
+
+  .panel-card {
+    min-height: auto;
+  }
+
+  .fila-subarea {
     grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .fila-subarea strong {
+    text-align: right;
+  }
+
+  :deep(th),
+  :deep(td) {
+    font-size: 12px;
+    padding: 8px 6px !important;
   }
 }
 </style>

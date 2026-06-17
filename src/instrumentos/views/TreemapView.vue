@@ -1,37 +1,87 @@
 <template>
-  <div class="pagina-treemap">
-    <button class="flecha-volver" @click="volver">←</button>
+  <v-container fluid class="pagina-treemap">
+    <v-row align="center" class="mb-4">
+      <v-col cols="auto">
+        <v-btn
+          icon
+          variant="text"
+          class="flecha-volver"
+          @click="volver"
+        >
+          ←
+        </v-btn>
+      </v-col>
 
-    <h1>Treemap de Alertas</h1>
+      <v-col>
+        <h1 class="titulo">Treemap de Alertas</h1>
+      </v-col>
+    </v-row>
 
-    <div class="ruta">
-      <button @click="volverNivelSubarea">Subáreas</button>
+    <v-row class="mb-4">
+      <v-col cols="12">
+        <div class="ruta">
+          <v-btn
+            color="primary"
+            variant="flat"
+            class="btn-ruta-principal"
+            @click="volverNivelSubarea"
+          >
+            Subáreas
+          </v-btn>
 
-      <button
-        v-if="subareaSeleccionada"
-        class="btn-ruta"
-        @click="volverNivelSistema"
-      >
-        {{ subareaSeleccionada }}
-      </button>
+          <v-btn
+            v-if="subareaSeleccionada"
+            color="grey-lighten-3"
+            variant="flat"
+            class="btn-ruta"
+            @click="volverNivelSistema"
+          >
+            {{ subareaSeleccionada }}
+          </v-btn>
 
-      <span v-if="sistemaSeleccionado">/ {{ sistemaSeleccionado }}</span>
-    </div>
+          <v-chip
+            v-if="sistemaSeleccionado"
+            color="primary"
+            variant="tonal"
+          >
+            {{ sistemaSeleccionado }}
+          </v-chip>
+        </div>
+      </v-col>
+    </v-row>
 
-    <div v-if="cargando" class="estado">Cargando alertas...</div>
+    <v-card class="treemap-card" elevation="4" color="white">
+      <v-card-text>
+        <div v-if="cargando" class="estado">
+          <v-progress-circular
+            indeterminate
+            size="64"
+            width="6"
+            color="primary"
+          />
 
-    <div v-else-if="sinDatos" class="estado">
-      No hay alertas para mostrar
-    </div>
+          <p>Cargando alertas...</p>
+        </div>
 
-    <div ref="chartRef" class="treemap" :class="{ oculto: cargando || sinDatos }"></div>
-  </div>
+        <div v-else-if="sinDatos" class="estado">
+          No hay alertas para mostrar
+        </div>
+
+        <div
+          ref="chartRef"
+          class="treemap"
+          :class="{ oculto: cargando || sinDatos }"
+        ></div>
+      </v-card-text>
+    </v-card>
+  </v-container>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import * as echarts from 'echarts'
+
 import {
   obtenerAlertasInstrumentos
 } from '../service/instrumentoService'
@@ -282,7 +332,6 @@ async function cargarTreemap() {
 
     alertas.value = await obtenerAlertasInstrumentos()
 
-
     cargando.value = false
 
     await nextTick()
@@ -329,71 +378,101 @@ onBeforeUnmount(() => {
 <style scoped>
 .pagina-treemap {
   min-height: 100vh;
-  padding: 30px;
+  padding: 28px 30px 40px;
   background: #f8fafc;
 }
 
 .flecha-volver {
-  background: transparent;
-  border: none;
+  color: black !important;
   font-size: 42px;
   font-weight: bold;
-  color: black;
-  cursor: pointer;
-  margin-bottom: 20px;
+  line-height: 1;
 }
 
-h1 {
+.titulo {
   color: #005494;
-  margin-bottom: 15px;
+  font-size: clamp(28px, 5vw, 38px);
+  font-weight: 900;
+  margin: 0;
 }
 
 .ruta {
-  margin-bottom: 15px;
-  font-weight: 700;
-  color: #334155;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+  flex-wrap: wrap;
+  color: #334155;
+  font-weight: 700;
 }
 
-.ruta button {
-  border: none;
-  background: #005494;
-  color: white;
-  padding: 8px 14px;
-  border-radius: 8px;
-  font-weight: 700;
-  cursor: pointer;
+.btn-ruta-principal,
+.btn-ruta {
+  font-weight: 800;
+  text-transform: none;
 }
 
 .btn-ruta {
-  background: #e2e8f0 !important;
   color: #0f172a !important;
+}
+
+.treemap-card {
+  background: white !important;
+  color: #1e293b !important;
+  border-radius: 16px;
+  border: 1px solid #d1d5db;
 }
 
 .treemap {
   width: 100%;
   height: 75vh;
+  min-height: 420px;
   background: white;
   border: 2px solid #d1d5db;
+  border-radius: 12px;
 }
 
 .estado {
   width: 100%;
   height: 75vh;
+  min-height: 420px;
   background: white;
   border: 2px solid #d1d5db;
+  border-radius: 12px;
+
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 18px;
+
   color: #334155;
   font-size: 20px;
-  font-weight: 700;
+  font-weight: 800;
 }
+
+.estado p {
+  margin: 0;
+}
+
 .oculto {
   visibility: hidden;
   position: absolute;
   pointer-events: none;
+}
+
+@media (max-width: 600px) {
+  .pagina-treemap {
+    padding: 18px;
+  }
+
+  .flecha-volver {
+    font-size: 36px;
+  }
+
+  .treemap,
+  .estado {
+    height: 65vh;
+    min-height: 360px;
+  }
 }
 </style>

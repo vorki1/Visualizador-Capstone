@@ -1,28 +1,43 @@
 <template>
-  <div class="contenedor-principal">
-    <aside class="menu-lateral">
-      <button class="flecha-volver" @click="volver">
-        ←
-      </button>
+  <v-container fluid class="subareas-view">
+    <v-row class="fill-height" no-gutters>
+      <!-- MENÚ LATERAL -->
+      <v-col cols="12" md="4" lg="3" class="menu-lateral">
+        <v-btn
+          icon
+          variant="text"
+          class="flecha-volver"
+          @click="volver"
+        >
+          ←
+        </v-btn>
 
-      <h1 class="titulo">
-        Subáreas
-      </h1>
+        <h1 class="titulo">
+          Subáreas
+        </h1>
 
-      <button
-        v-for="subarea in subareas"
-        :key="subarea"
-        class="card-subarea"
-        @click="abrirSubarea(subarea)"
-      >
-        {{ subarea }}
-      </button>
-    </aside>
+        <v-btn
+          v-for="subarea in subareas"
+          :key="subarea"
+          block
+          class="card-subarea"
+          @click="abrirSubarea(subarea)"
+        >
+          {{ subarea }}
+        </v-btn>
+      </v-col>
 
-    <main class="contenido">
-      <h2>Área {{ area }}</h2>
-    </main>
-  </div>
+      <!-- CONTENIDO -->
+      <v-col cols="12" md="8" lg="9" class="contenido">
+        <v-card class="contenido-card" elevation="4" color="white">
+          <v-card-text>
+            <h2>Área {{ area }}</h2>
+            <p>Selecciona una subárea para continuar.</p>
+          </v-card-text>
+        </v-card>
+      </v-col>
+    </v-row>
+  </v-container>
 </template>
 
 <script setup lang="ts">
@@ -72,22 +87,26 @@ function volver() {
 }
 
 onMounted(async () => {
-  const respuesta = await obtenerSubareas(area)
-  subareas.value = ordenarSubareas(respuesta)
+  try {
+    const respuesta = await obtenerSubareas(area)
+    subareas.value = ordenarSubareas(respuesta)
+  } catch (error) {
+    console.error(error)
+  }
 })
 </script>
 
 <style scoped>
-.contenedor-principal {
-  display: flex;
+.subareas-view {
   min-height: 100vh;
+  padding: 0;
+  background: #f5f7fa;
 }
 
 .menu-lateral {
-  width: 400px;
   min-height: 100vh;
   background: #d9d9d9;
-  padding: 35px 10px;
+  padding: 35px 16px;
 
   display: flex;
   flex-direction: column;
@@ -97,45 +116,35 @@ onMounted(async () => {
 }
 
 .flecha-volver {
-  background: transparent;
-  border: none;
   font-size: 42px;
   font-weight: bold;
-  color: black;
-  cursor: pointer;
-  margin-bottom: 55px;
+  color: black !important;
+  margin-bottom: 45px;
   line-height: 1;
-}
-
-.flecha-volver:hover {
-  opacity: 0.7;
 }
 
 .titulo {
   color: #005494;
-  font-size: 32px;
-  font-weight: bold;
+  font-size: clamp(26px, 4vw, 32px);
+  font-weight: 900;
   margin-bottom: 40px;
   text-align: center;
 }
 
 .card-subarea {
-  width: 380px;
-  height: 85px;
-  background: #005494;
-  color: white;
-  border: 2px solid black;
+  min-height: 85px;
+  max-width: 380px;
   margin-bottom: 15px;
 
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  background: #005494 !important;
+  color: white !important;
+  border: 2px solid black;
 
   font-size: 22px;
-  font-weight: bold;
+  font-weight: 900;
+  border-radius: 0;
+  white-space: normal;
   text-align: center;
-
-  cursor: pointer;
 }
 
 .card-subarea:hover {
@@ -143,7 +152,58 @@ onMounted(async () => {
 }
 
 .contenido {
-  flex: 1;
+  min-height: 100vh;
   padding: 30px;
+  background: #f8fafc;
+}
+
+.contenido-card {
+  border-radius: 16px;
+  color: #1e293b !important;
+}
+
+.contenido-card h2 {
+  color: #005494;
+  font-size: clamp(28px, 5vw, 42px);
+  font-weight: 900;
+  margin-bottom: 10px;
+}
+
+.contenido-card p {
+  color: #334155;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+@media (max-width: 960px) {
+  .menu-lateral {
+    min-height: auto;
+    padding: 28px 18px;
+  }
+
+  .contenido {
+    min-height: auto;
+    padding: 22px;
+  }
+}
+
+@media (max-width: 480px) {
+  .flecha-volver {
+    margin-bottom: 25px;
+    font-size: 36px;
+  }
+
+  .titulo {
+    margin-bottom: 28px;
+  }
+
+  .card-subarea {
+    min-height: 72px;
+    font-size: 19px;
+  }
+
+  .contenido {
+    padding: 16px;
+  }
 }
 </style>

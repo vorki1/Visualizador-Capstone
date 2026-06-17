@@ -1,123 +1,166 @@
 <template>
-  <div class="admin-view">
-    <header class="admin-header">
-      <button class="btn-volver" @click="volver">
-        ←
-      </button>
-
-      <div>
-        <h1>Panel de Administración</h1>
-        <p>Control de procesos internos del sistema</p>
-      </div>
-    </header>
-
-    <main class="admin-grid">
-      <!-- SECCIÓN MATRIZ B -->
-      <section class="admin-card">
-        <h2>Matriz B</h2>
-
-        <div class="estado-box">
-          <span>Estado actual:</span>
-
-          <strong
-            :class="estadoMatrizB ? 'estado-proceso' : 'estado-libre'"
-          >
-            {{ estadoMatrizB ? 'En proceso' : 'Disponible' }}
-          </strong>
-        </div>
-
-        <p class="descripcion">
-          Desde aquí puedes ejecutar la construcción de la Matriz B en segundo plano.
-        </p>
-
-        <button
-          class="btn-principal"
-          :disabled="estadoMatrizB || cargando"
-          @click="ejecutarMatrizB"
+  <v-container fluid class="admin-view">
+    <v-row class="mb-6" align="center">
+      <v-col cols="auto">
+        <v-btn
+          icon
+          class="btn-volver"
+          @click="volver"
         >
-          {{ estadoMatrizB ? 'Matriz B en proceso...' : 'Ejecutar Matriz B' }}
-        </button>
+          ←
+        </v-btn>
+      </v-col>
 
-        <button class="btn-secundario" @click="cargarEstado">
-          Actualizar estado
-        </button>
+      <v-col>
+        <h1 class="titulo">Panel de Administración</h1>
+        <p class="subtitulo">Control de procesos internos del sistema</p>
+      </v-col>
+    </v-row>
 
-        <p v-if="mensaje" class="mensaje">
+    <v-row>
+      <!-- MATRIZ B -->
+      <v-col cols="12" md="6">
+        <v-card class="admin-card">
+          <v-card-title class="card-title">Matriz B</v-card-title>
+
+          <v-card-text>
+            <div class="estado-box">
+              <span>Estado actual:</span>
+
+              <v-chip
+                :color="estadoMatrizB ? 'red' : 'green'"
+                variant="tonal"
+              >
+                {{ estadoMatrizB ? 'En proceso' : 'Disponible' }}
+              </v-chip>
+            </div>
+
+            <p class="descripcion">
+              Desde aquí puedes ejecutar la construcción de la Matriz B en segundo plano.
+            </p>
+
+            <v-btn
+              block
+              color="primary"
+              class="mb-3"
+              :loading="cargando"
+              :disabled="estadoMatrizB || cargando"
+              @click="ejecutarMatrizB"
+            >
+              {{ estadoMatrizB ? 'Matriz B en proceso...' : 'Ejecutar Matriz B' }}
+            </v-btn>
+
+            <v-btn
+              block
+              color="blue-grey-lighten-4"
+              variant="flat"
+              @click="cargarEstado"
+            >
+              Actualizar estado
+            </v-btn>
+          </v-card-text>
+        </v-card>
+      </v-col>
+
+      <!-- ÚLTIMA ACTUALIZACIÓN -->
+      <v-col cols="12" md="6">
+        <v-card class="admin-card">
+          <v-card-title class="card-title">Última actualización</v-card-title>
+
+          <v-card-text>
+            <p class="descripcion">
+              Estado del archivo de métricas de la Matriz B.
+            </p>
+
+            <v-chip
+              :color="existeArchivoMetricas ? 'green' : 'red'"
+              variant="tonal"
+              size="large"
+              class="chip-fecha"
+            >
+              <v-icon start>
+                {{ existeArchivoMetricas ? 'mdi-check-circle' : 'mdi-alert-circle' }}
+              </v-icon>
+
+              <span v-if="existeArchivoMetricas">
+                Última actualización: {{ ultimaActualizacion }}
+              </span>
+
+              <span v-else>
+                Archivo de métricas no disponible
+              </span>
+            </v-chip>
+          </v-card-text>
+        </v-card>
+      </v-col>
+
+      <!-- IMPORTAR EXCEL -->
+      <v-col cols="12" md="6">
+        <v-card class="admin-card">
+          <v-card-title class="card-title">Importar Excel</v-card-title>
+
+          <v-card-text>
+            <p class="descripcion">
+              Espacio reservado para subir archivos Excel al sistema.
+            </p>
+
+            <v-file-input
+              v-model="archivoSeleccionado"
+              label="Seleccionar archivo Excel"
+              accept=".xlsx,.xls"
+              prepend-icon="mdi-file-excel"
+              variant="outlined"
+              clearable
+              show-size
+              density="comfortable"
+            />
+
+            <v-btn
+              block
+              color="primary"
+              class="mt-3"
+              :loading="importandoExcel"
+              :disabled="!archivoSeleccionado || importandoExcel"
+              @click="subirExcel"
+            >
+              {{ importandoExcel ? 'Importando...' : 'Subir Excel' }}
+            </v-btn>
+          </v-card-text>
+        </v-card>
+      </v-col>
+
+      <!-- EXPORTAR EXCEL -->
+      <v-col cols="12" md="6">
+        <v-card class="admin-card">
+          <v-card-title class="card-title">Exportar Excel</v-card-title>
+
+          <v-card-text>
+            <p class="descripcion">
+              Espacio reservado para descargar información del sistema en formato Excel.
+            </p>
+
+            <v-btn
+              block
+              color="primary"
+              :loading="exportandoExcel"
+              :disabled="exportandoExcel"
+              @click="descargarExcel"
+            >
+              {{ exportandoExcel ? 'Exportando...' : 'Exportar Excel' }}
+            </v-btn>
+          </v-card-text>
+        </v-card>
+      </v-col>
+    </v-row>
+
+    <v-row v-if="mensaje" class="mt-4">
+      <v-col cols="12">
+        <v-alert type="info" variant="tonal" closable>
           {{ mensaje }}
-        </p>
-      </section>
-
-      <!-- SECCIÓN ÚLTIMA ACTUALIZACIÓN -->
-      <section class="admin-card">
-        <h2>Última actualización</h2>
-
-        <p class="descripcion">
-            Estado del archivo de métricas de la Matriz B.
-        </p>
-
-        <div
-            class="tag-actualizacion"
-            :class="existeArchivoMetricas ? 'tag-ok' : 'tag-error'"
-        >
-            <span class="punto"></span>
-
-            <span v-if="existeArchivoMetricas">
-            Última actualización: {{ ultimaActualizacion }}
-            </span>
-
-            <span v-else>
-            Archivo de métricas no disponible
-            </span>
-        </div>
-        </section>
-
-      <!-- SECCIÓN IMPORTAR EXCEL -->
-      <section class="admin-card">
-        <h2>Importar Excel</h2>
-
-        <p class="descripcion">
-          Espacio reservado para subir archivos Excel al sistema.
-        </p>
-
-        <input
-          ref="inputExcel"
-          type="file"
-          accept=".xlsx,.xls"
-          class="input-file"
-          @change="seleccionarArchivo"
-        />
-
-        <div v-if="archivoSeleccionado" class="archivo-box">
-          Archivo seleccionado: {{ archivoSeleccionado.name }}
-        </div>
-
-        <button
-          class="btn-principal"
-          :disabled="!archivoSeleccionado || importandoExcel"
-          @click="subirExcel"
-        >
-          {{ importandoExcel ? 'Importando...' : 'Subir Excel' }}
-        </button>
-      </section>
-
-      <!-- SECCIÓN EXPORTAR EXCEL -->
-      <section class="admin-card">
-        <h2>Exportar Excel</h2>
-
-        <p class="descripcion">
-          Espacio reservado para descargar información del sistema en formato Excel.
-        </p>
-
-        <button
-          class="btn-principal"
-          :disabled="exportandoExcel"
-          @click="descargarExcel"
-        >
-          {{ exportandoExcel ? 'Exportando...' : 'Exportar Excel' }}
-        </button>
-      </section>
-    </main>
-  </div>
+        </v-alert>
+      </v-col>
+    </v-row>
+  </v-container>
 </template>
 
 <script setup lang="ts">
@@ -138,10 +181,10 @@ const cargando = ref(false)
 const mensaje = ref('')
 const ultimaActualizacion = ref('')
 const existeArchivoMetricas = ref(false)
-const archivoSeleccionado = ref<File | null>(null)
+const archivoSeleccionado = ref<File | File[] | null>(null)
 const exportandoExcel = ref(false)
 const importandoExcel = ref(false)
-const inputExcel = ref<HTMLInputElement | null>(null)
+
 function volver() {
   router.back()
 }
@@ -180,6 +223,7 @@ async function ejecutarMatrizB() {
 
     mensaje.value = data.mensaje
     await cargarEstado()
+    await cargarUltimaActualizacion()
   } catch (error) {
     console.error(error)
     mensaje.value = 'Error al iniciar la Matriz B'
@@ -188,15 +232,6 @@ async function ejecutarMatrizB() {
   }
 }
 
-function seleccionarArchivo(event: Event) {
-  const input = event.target as HTMLInputElement
-
-  if (input.files && input.files.length > 0) {
-    archivoSeleccionado.value = input.files[0]
-  } else {
-    archivoSeleccionado.value = null
-  }
-}
 async function descargarExcel() {
   try {
     exportandoExcel.value = true
@@ -212,8 +247,13 @@ async function descargarExcel() {
     exportandoExcel.value = false
   }
 }
+
 async function subirExcel() {
-  if (!archivoSeleccionado.value) {
+  const archivo = Array.isArray(archivoSeleccionado.value)
+    ? archivoSeleccionado.value[0]
+    : archivoSeleccionado.value
+
+  if (!archivo) {
     mensaje.value = 'Debes seleccionar un archivo Excel'
     return
   }
@@ -222,15 +262,10 @@ async function subirExcel() {
     importandoExcel.value = true
     mensaje.value = ''
 
-    const data = await importarExcel(archivoSeleccionado.value)
+    const data = await importarExcel(archivo)
 
     mensaje.value = data.mensaje || 'Excel importado correctamente'
-
     archivoSeleccionado.value = null
-
-    if (inputExcel.value) {
-      inputExcel.value.value = ''
-    }
   } catch (error) {
     console.error(error)
     mensaje.value = 'No se pudo importar el Excel'
@@ -250,155 +285,113 @@ onMounted(async () => {
   min-height: 100vh;
   background: #f4f6f8;
   padding: 32px;
-}
-
-.admin-header {
-  display: flex;
-  align-items: center;
-  gap: 20px;
-  margin-bottom: 32px;
-}
-
-.admin-header h1 {
-  margin: 0;
-  font-size: 32px;
   color: #1f2937;
 }
 
-.admin-header p {
-  margin: 4px 0 0;
-  color: #6b7280;
+.titulo {
+  margin: 0;
+  font-size: clamp(26px, 4vw, 40px);
+  color: #0f2744;
+  font-weight: 800;
+}
+
+.subtitulo {
+  margin: 6px 0 0;
+  color: #64748b;
+  font-size: 17px;
 }
 
 .btn-volver {
-  width: 42px;
-  height: 42px;
-  border: none;
-  border-radius: 50%;
-  background: #1f2937;
+  width: 58px;
+  height: 58px;
+  background: #111827;
   color: white;
   font-size: 24px;
-  cursor: pointer;
-}
-
-.admin-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 24px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25);
 }
 
 .admin-card {
-  background: white;
+  height: 100%;
+  min-height: 300px;
   border-radius: 18px;
-  padding: 24px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  background: #ffffff;
+  color: #1f2937;
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.12);
 }
 
-.admin-card h2 {
-  margin-top: 0;
-  color: #111827;
+.card-title {
+  color: #0f2744;
+  font-size: 24px;
+  font-weight: 800;
+  padding: 22px 24px 8px;
 }
 
 .descripcion {
-  color: #6b7280;
-  margin-bottom: 20px;
+  color: #64748b;
+  margin-bottom: 22px;
+  font-size: 16px;
 }
 
 .estado-box {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #f9fafb;
-  padding: 14px;
-  border-radius: 12px;
-  margin-bottom: 16px;
+  gap: 12px;
+  background: #f8fafc;
+  color: #334155;
+  padding: 16px 18px;
+  border-radius: 14px;
+  margin-bottom: 20px;
+  border: 1px solid #e5e7eb;
 }
 
-.estado-libre {
-  color: #16a34a;
-}
-
-.estado-proceso {
-  color: #dc2626;
-}
-
-.btn-principal,
-.btn-secundario {
-  width: 100%;
-  border: none;
-  border-radius: 12px;
-  padding: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  margin-top: 10px;
-}
-
-.btn-principal {
-  background: #2563eb;
-  color: white;
-}
-
-.btn-principal:disabled {
-  background: #9ca3af;
-  cursor: not-allowed;
-}
-
-.btn-secundario {
-  background: #e5e7eb;
-  color: #111827;
-}
-
-.mensaje {
-  margin-top: 16px;
-  background: #eff6ff;
-  color: #1d4ed8;
-  padding: 12px;
-  border-radius: 10px;
-}
-
-.fecha-box,
-.archivo-box {
-  background: #f9fafb;
-  padding: 14px;
-  border-radius: 12px;
-  color: #374151;
-  margin-bottom: 16px;
-}
-
-.input-file {
-  width: 100%;
-  margin-bottom: 16px;
-}
-
-@media (max-width: 900px) {
-  .admin-grid {
-    grid-template-columns: 1fr;
-  }
-}
-.tag-actualizacion {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
+.chip-fecha {
+  max-width: 100%;
+  white-space: normal;
+  height: auto;
   padding: 10px 14px;
-  border-radius: 999px;
-  font-size: 14px;
-  font-weight: 600;
 }
 
-.tag-ok {
-  background: #dcfce7;
-  color: #166534;
+:deep(.v-card-text) {
+  color: #1f2937;
+  padding: 14px 24px 24px;
 }
 
-.tag-error {
-  background: #fee2e2;
-  color: #991b1b;
+:deep(.v-field) {
+  background: #ffffff;
+  color: #1f2937;
 }
 
-.punto {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
-  background: currentColor;
+:deep(.v-label) {
+  color: #64748b;
+}
+
+:deep(.v-field__input) {
+  color: #1f2937;
+}
+
+:deep(.v-icon) {
+  color: inherit;
+}
+
+@media (max-width: 600px) {
+  .admin-view {
+    padding: 18px;
+  }
+
+  .btn-volver {
+    width: 50px;
+    height: 50px;
+  }
+
+  .estado-box {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .admin-card {
+    min-height: auto;
+  }
 }
 </style>

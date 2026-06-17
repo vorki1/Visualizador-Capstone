@@ -1,131 +1,169 @@
 <template>
-  <div v-if="cargandoAlertas" class="loading-container">
-    <v-progress-circular
-      indeterminate
-      size="70"
-      width="6"
-      color="primary"
-    />
-    <p>Cargando alertas...</p>
-  </div>
-  <div v-else>
-    <div class="vista-sistemas">
-      <aside class="menu-lateral">
-        <button class="boton-volver-icono" @click="volver">
+  <v-container fluid class="vista-sistemas">
+    <v-overlay
+      v-model="cargandoAlertas"
+      persistent
+      class="loading-overlay"
+    >
+      <div class="loading-box">
+        <v-progress-circular
+          indeterminate
+          size="70"
+          width="6"
+          color="primary"
+        />
+        <p>Cargando alertas...</p>
+      </div>
+    </v-overlay>
+
+    <v-row class="fill-height" no-gutters>
+      <!-- MENÚ LATERAL -->
+      <v-col cols="12" md="4" lg="3" class="menu-lateral">
+        <v-btn
+          icon
+          variant="text"
+          class="boton-volver-icono"
+          @click="volver"
+        >
           ←
-        </button>
+        </v-btn>
 
         <h2 class="titulo-menu">
           Sistemas de {{ subarea }}
         </h2>
 
+        <div class="acciones-sistemas">
+          <v-btn
+            block
+            class="btn-accion"
+            @click="seleccionarTodo"
+          >
+            Seleccionar todo
+          </v-btn>
+
+          <v-btn
+            block
+            class="btn-accion btn-limpiar"
+            @click="limpiarSeleccion"
+          >
+            Limpiar selección
+          </v-btn>
+        </div>
+
         <div class="selector-lista">
-          <div
+          <v-card
             v-for="sistema in sistemas"
             :key="sistema"
             class="item-sistema"
             :class="{ seleccionado: sistemasSeleccionados.includes(sistema) }"
+            elevation="3"
             @click="toggleSistema(sistema)"
           >
-            <span class="checkbox-visual">
-              {{ sistemasSeleccionados.includes(sistema) ? '✓' : '' }}
-            </span>
-
-            <span class="nombre-sistema">
-              {{ sistema }}
-            </span>
-          </div>
+            <v-card-text class="item-sistema-content">
+              <span class="nombre-sistema">
+                {{ sistema }}
+              </span>
+            </v-card-text>
+          </v-card>
         </div>
-      </aside>
+      </v-col>
 
-      <main class="contenido">
+      <!-- CONTENIDO -->
+      <v-col cols="12" md="8" lg="9" class="contenido">
         <h1 class="titulo-principal">
           Área {{ area }}
         </h1>
 
-        <div class="panel-tabla">
-          <div class="contenedor-filtros">
-            <select v-model="filtroSensor" class="filtro-select">
-              <option value="">Sensor</option>
-              <option
-                v-for="sensor in sensoresDisponibles"
-                :key="sensor"
-                :value="sensor"
-              >
-                {{ sensor }}
-              </option>
-            </select>
+        <v-card class="panel-tabla" elevation="4" color="white">
+          <v-card-text>
+            <v-row class="mb-4" dense>
+              <v-col cols="12" sm="6" lg="4">
+                <v-select
+                  v-model="filtroSensor"
+                  :items="sensoresDisponibles"
+                  label="Sensor"
+                  variant="outlined"
+                  density="compact"
+                  clearable
+                  hide-details
+                />
+              </v-col>
 
-            <select v-model="filtroTipoAlarma" class="filtro-select">
-              <option value="">Tipo Alarma</option>
-              <option
-                v-for="tipo in tiposDisponibles"
-                :key="tipo"
-                :value="tipo"
-              >
-                {{ tipo }}
-              </option>
-            </select>
+              <v-col cols="12" sm="6" lg="4">
+                <v-select
+                  v-model="filtroTipoAlarma"
+                  :items="tiposDisponibles"
+                  label="Tipo Alarma"
+                  variant="outlined"
+                  density="compact"
+                  clearable
+                  hide-details
+                />
+              </v-col>
 
-            <select v-model="filtroNivel" class="filtro-select">
-              <option value="">Nivel</option>
-              <option
-                v-for="nivel in nivelesDisponibles"
-                :key="nivel"
-                :value="nivel"
-              >
-                {{ nivel }}
-              </option>
-            </select>
-          </div>
+              <v-col cols="12" sm="6" lg="4">
+                <v-select
+                  v-model="filtroNivel"
+                  :items="nivelesDisponibles"
+                  label="Nivel"
+                  variant="outlined"
+                  density="compact"
+                  clearable
+                  hide-details
+                />
+              </v-col>
+            </v-row>
 
-          <table class="tabla-instrumentos">
-            <thead>
-              <tr>
-                <th>Sensor</th>
-                <th>Descripción</th>
-                <th>Equipo</th>
-                <th>Tipo de Alarma</th>
-                <th>Nivel</th>
-                <th>Hora de Alarma</th>
-              </tr>
-            </thead>
+            <div class="tabla-wrapper">
+              <v-table fixed-header height="520" class="tabla-instrumentos">
+                <thead>
+                  <tr>
+                    <th>Sensor</th>
+                    <th>Descripción</th>
+                    <th>Equipo</th>
+                    <th>Tipo de Alarma</th>
+                    <th>Nivel</th>
+                    <th>Hora de Alarma</th>
+                  </tr>
+                </thead>
 
-            <tbody>
-              <tr
-                v-for="alarma in alarmasMostradas"
-                :key="`${alarma.Identificador}-${alarma.Sistema}-${alarma.Tipo_Alerta}`"
-                class="fila-clickable"
-                @click="irADetalleInstrumento(alarma.Identificador)"
-              >
-                <td>{{ alarma.Nombre_TAG }}</td>
-                <td>{{ alarma.Descripcion }}</td>
-                <td>{{ alarma.Sistema }}</td>
-                <td>{{ alarma.Tipo_Alerta }}</td>
-
-                <td>
-                  <span
-                    class="badge-alerta"
-                    :class="claseNivel(alarma.Nivel_Alerta)"
+                <tbody>
+                  <tr
+                    v-for="alarma in alarmasMostradas"
+                    :key="`${alarma.Identificador}-${alarma.Sistema}-${alarma.Tipo_Alerta}-${alarma.Nivel_Alerta}`"
+                    class="fila-clickable"
+                    @click="irADetalleInstrumento(alarma.Identificador)"
                   >
-                    {{ alarma.Nivel_Alerta }}
-                  </span>
-                </td>
+                    <td>{{ alarma.Nombre_TAG }}</td>
+                    <td>{{ alarma.Descripcion }}</td>
+                    <td>{{ alarma.Sistema }}</td>
+                    <td>{{ alarma.Tipo_Alerta }}</td>
 
-                <td>{{ formatearFecha(alarma.Fecha_Inicio_Alarma) }}</td>
-              </tr>
+                    <td>
+                      <v-chip
+                        size="small"
+                        :class="claseNivel(alarma.Nivel_Alerta)"
+                      >
+                        {{ alarma.Nivel_Alerta }}
+                      </v-chip>
+                    </td>
 
-              <tr v-if="alarmasMostradas.length === 0">
-                <td colspan="6" class="sin-datos">
-                  No hay sensores con alertas para los filtros seleccionados
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </main>
-    </div>
-  </div>
+                    <td>{{ formatearFecha(alarma.Fecha_Inicio_Alarma) }}</td>
+                  </tr>
+
+                  <tr v-if="alarmasMostradas.length === 0">
+                    <td colspan="6" class="sin-datos">
+                      No hay sensores con alertas para los filtros seleccionados
+                    </td>
+                  </tr>
+                </tbody>
+              </v-table>
+            </div>
+          </v-card-text>
+        </v-card>
+      </v-col>
+    </v-row>
+  </v-container>
 </template>
 
 <script setup lang="ts">
@@ -169,8 +207,6 @@ const route = useRoute()
 const router = useRouter()
 
 const cargandoAlertas = ref(false)
-const ultimaActualizacion = ref<Date | null>(null)
-
 let intervaloAlertas: number | undefined
 
 const area = Number(route.params.area)
@@ -178,26 +214,28 @@ const subarea = String(route.params.subarea)
 
 const sistemas = ref<string[]>([])
 const sistemasSeleccionados = ref<string[]>([])
+const alertas = ref<AlertaJson[]>([])
 const alarmasFiltradas = ref<AlarmaTabla[]>([])
 
 const filtroSensor = ref('')
 const filtroTipoAlarma = ref('')
 const filtroNivel = ref('')
 
-const alertas = ref<AlertaJson[]>([])
-
 const alarmasMostradas = computed(() => {
   return alarmasFiltradas.value.filter(alarma => {
     const sensorOK =
       filtroSensor.value === '' ||
+      filtroSensor.value === null ||
       alarma.Nombre_TAG === filtroSensor.value
 
     const tipoOK =
       filtroTipoAlarma.value === '' ||
+      filtroTipoAlarma.value === null ||
       alarma.Tipo_Alerta === filtroTipoAlarma.value
 
     const nivelOK =
       filtroNivel.value === '' ||
+      filtroNivel.value === null ||
       alarma.Nivel_Alerta === filtroNivel.value
 
     return sensorOK && tipoOK && nivelOK
@@ -226,7 +264,19 @@ function limpiarFiltros() {
   filtroNivel.value = ''
 }
 
-async function toggleSistema(sistema: string) {
+function seleccionarTodo() {
+  sistemasSeleccionados.value = [...sistemas.value]
+  limpiarFiltros()
+  cargarAlarmas()
+}
+
+function limpiarSeleccion() {
+  sistemasSeleccionados.value = []
+  limpiarFiltros()
+  cargarAlarmas()
+}
+
+function toggleSistema(sistema: string) {
   const index = sistemasSeleccionados.value.indexOf(sistema)
 
   if (index >= 0) {
@@ -243,8 +293,6 @@ async function cargarAlertasDesdeBackend() {
   try {
     alertas.value = await obtenerAlertasInstrumentos()
     cargarAlarmas()
-    ultimaActualizacion.value = new Date()
-
   } catch (error) {
     console.error('Error al actualizar alertas:', error)
   }
@@ -296,7 +344,7 @@ function claseNivel(nivel: string) {
   const nivelUpper = nivel.toUpperCase()
 
   if (nivelUpper.includes('EMERGENCIA')) return 'emergencia'
-  if (nivelUpper.includes('CRITICO')) return 'critico'
+  if (nivelUpper.includes('CRITICO') || nivelUpper.includes('CRÍTICO')) return 'critico'
   if (nivelUpper.includes('PREVENTIVO')) return 'preventivo'
 
   return 'normal'
@@ -309,21 +357,23 @@ function formatearFecha(fecha: string) {
 function irADetalleInstrumento(id: number) {
   router.push(`/instrumento/${id}`)
 }
+
 const TIEMPO_ACTUALIZACION = 120000
+
 onMounted(async () => {
   try {
     cargandoAlertas.value = true
 
     sistemas.value = await obtenerSistemas(subarea)
+
+    // Al iniciar, ningún sistema queda seleccionado
+    sistemasSeleccionados.value = []
+
     await cargarAlertasDesdeBackend()
 
-    console.log('Intervalo iniciado')
-
     intervaloAlertas = window.setInterval(async () => {
-      console.log('Ejecutando actualización automática...')
       await cargarAlertasDesdeBackend()
     }, TIEMPO_ACTUALIZACION)
-
   } catch (error) {
     console.error('Error al cargar datos iniciales:', error)
   } finally {
@@ -340,35 +390,76 @@ onUnmounted(() => {
 
 <style scoped>
 .vista-sistemas {
-  display: flex;
   min-height: 100vh;
-  background: #f5f5f5;
+  background: #f5f7fa;
+  padding: 0;
+}
+
+.loading-overlay {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading-box {
+  background: white;
+  padding: 32px 42px;
+  border-radius: 18px;
+  text-align: center;
+  color: #1e293b;
+  font-weight: 800;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+}
+
+.loading-box p {
+  margin-top: 18px;
 }
 
 .menu-lateral {
-  width: 340px;
-  height: 100vh;
+  min-height: 100vh;
   background: #d9d9d9;
-  padding: 20px;
+  padding: 24px 16px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
 }
 
 .boton-volver-icono {
-  background: transparent;
-  border: none;
-  font-size: 60px;
-  cursor: pointer;
-  color: black;
+  align-self: flex-start;
+  color: black !important;
+  font-size: 42px;
+  font-weight: bold;
+  margin-bottom: 16px;
 }
 
 .titulo-menu {
   text-align: center;
   color: #005494;
-  font-size: 24px;
-  font-weight: bold;
-  margin-bottom: 25px;
+  font-size: clamp(22px, 3vw, 26px);
+  font-weight: 900;
+  margin-bottom: 18px;
+}
+
+.acciones-sistemas {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.btn-accion {
+  background: #005494 !important;
+  color: white !important;
+  font-weight: 900 !important;
+  min-height: 55px !important;
+  max-height: 55px !important;
+  border-radius: 10px !important;
+  border: 2px solid black !important;
+  letter-spacing: 0.4px;
+}
+
+.btn-limpiar {
+  background: #64748b !important;
 }
 
 .selector-lista {
@@ -381,156 +472,216 @@ onUnmounted(() => {
 }
 
 .item-sistema {
-  width: 100%;
-  min-height: 70px;
-  background: #005494;
-  color: white;
+  background: #005494 !important;
+  color: white !important;
   border: 2px solid black;
-  display: flex;
-  align-items: center;
-  padding: 0 18px;
-  gap: 18px;
+  border-radius: 10px;
   cursor: pointer;
-  font-size: 22px;
-  font-weight: bold;
+  transition: 0.2s ease;
+  min-height: 55px;
+  max-height: 55px;
+}
+
+.item-sistema:hover {
+  transform: translateY(-2px);
 }
 
 .item-sistema.seleccionado {
-  background: #00a651;
+  background: #00a651 !important;
   border: 3px solid white;
-  box-shadow: 0 0 10px rgba(0, 0, 0, .45);
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.35);
 }
 
-.checkbox-visual {
-  width: 28px;
-  height: 28px;
-  border: 2px solid white;
-  background: white;
-  color: #00a651;
+.item-sistema-content {
+  min-height: 55px;
+  max-height: 55px;
   display: flex;
-  justify-content: center;
   align-items: center;
-  font-weight: bold;
+  justify-content: center;
+  padding: 0 16px !important;
 }
 
 .nombre-sistema {
-  flex: 1;
+  width: 100%;
   text-align: center;
+  font-size: 20px;
+  font-weight: 900;
+  word-break: break-word;
 }
 
 .contenido {
-  flex: 1;
+  min-height: 100vh;
   padding: 30px;
-  background: white;
+  background: #f8fafc;
 }
 
 .titulo-principal {
   text-align: center;
   color: #005494;
-  font-size: 48px;
-  font-weight: bold;
+  font-size: clamp(32px, 5vw, 48px);
+  font-weight: 900;
   margin-bottom: 30px;
 }
 
 .panel-tabla {
+  background: white !important;
+  color: #1e293b !important;
+  border-radius: 16px;
   border: 1px solid #d0d0d0;
-  padding: 20px;
-  height: calc(100vh - 180px);
-  overflow: auto;
 }
 
-.contenedor-filtros {
-  display: flex;
-  gap: 16px;
-  margin-bottom: 22px;
-  justify-content: flex-start;
-}
-
-.filtro-select {
-  width: 230px;
-  height: 42px;
-  border: 2px solid black;
-  background: white;
-  color: black;
-  font-size: 16px;
-  padding-left: 12px;
+.tabla-wrapper {
+  width: 100%;
+  overflow-x: auto;
 }
 
 .tabla-instrumentos {
-  width: 100%;
-  border-collapse: collapse;
-  color: black;
+  background: white !important;
+  color: #1e293b !important;
 }
 
-.tabla-instrumentos th {
-  background: #005494;
-  color: white;
-  padding: 10px;
-  border: 1px solid #777;
+:deep(.v-table) {
+  background: white !important;
 }
 
-.tabla-instrumentos td {
-  padding: 10px;
-  border: 1px solid #aaa;
+:deep(.v-table__wrapper) {
+  background: white !important;
+}
+
+:deep(table) {
+  background: white !important;
+}
+
+:deep(thead) {
+  background: #005494 !important;
+}
+
+:deep(th) {
+  background: #005494 !important;
+  color: white !important;
+  padding: 12px !important;
+  font-weight: 900 !important;
+  white-space: nowrap;
+  text-align: center !important;
+}
+
+:deep(tbody tr) {
+  background: white !important;
+}
+
+:deep(td) {
+  background: white !important;
+  color: #1e293b !important;
+  padding: 12px !important;
+  border-bottom: 1px solid #e5e7eb !important;
+  font-weight: 600;
   text-align: center;
+  white-space: nowrap;
 }
 
-.badge-alerta {
-  display: inline-block;
-  min-width: 110px;
-  padding: 6px 10px;
-  border-radius: 6px;
-  font-weight: bold;
-  color: black;
-}
-
-.preventivo {
-  background: #fff200;
-}
-
-.critico {
-  background: #ff9900;
-}
-
-.emergencia {
-  background: #ff0000;
-  color: white;
-}
-
-.normal {
-  background: #d4edda;
-}
-
-.sin-datos {
-  text-align: center;
-  color: #777;
-  padding: 30px;
-}
-
-.selector-lista::-webkit-scrollbar {
-  width: 14px;
-}
-
-.selector-lista::-webkit-scrollbar-track {
-  background: #3f3f3f;
-  border-radius: 10px;
-}
-
-.selector-lista::-webkit-scrollbar-thumb {
-  background: #8a8a8a;
-  border-radius: 10px;
-  border: 3px solid #3f3f3f;
-}
-
-.selector-lista::-webkit-scrollbar-thumb:hover {
-  background: #b0b0b0;
-}
 .fila-clickable {
   cursor: pointer;
   transition: background-color 0.2s ease;
 }
 
-.fila-clickable:hover {
-  background-color: #e0e0e0;
+:deep(.fila-clickable:hover td) {
+  background: #eaf3fb !important;
+}
+
+.preventivo {
+  background: #fff200 !important;
+  color: black !important;
+  font-weight: 900;
+}
+
+.critico {
+  background: #ff9900 !important;
+  color: black !important;
+  font-weight: 900;
+}
+
+.emergencia {
+  background: #ff0000 !important;
+  color: white !important;
+  font-weight: 900;
+}
+
+.normal {
+  background: #d4edda !important;
+  color: black !important;
+  font-weight: 900;
+}
+
+.sin-datos {
+  text-align: center !important;
+  color: #64748b !important;
+  padding: 30px !important;
+  font-weight: 800;
+}
+
+.selector-lista::-webkit-scrollbar {
+  width: 12px;
+}
+
+.selector-lista::-webkit-scrollbar-track {
+  background: #bdbdbd;
+  border-radius: 10px;
+}
+
+.selector-lista::-webkit-scrollbar-thumb {
+  background: #777;
+  border-radius: 10px;
+  border: 2px solid #bdbdbd;
+}
+
+.selector-lista::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+@media (max-width: 960px) {
+  .menu-lateral {
+    min-height: auto;
+    max-height: 520px;
+  }
+
+  .contenido {
+    min-height: auto;
+    padding: 22px;
+  }
+
+  .selector-lista {
+    max-height: 300px;
+  }
+}
+
+@media (max-width: 600px) {
+  .contenido {
+    padding: 16px;
+  }
+
+  .menu-lateral {
+    padding: 18px 14px;
+  }
+
+  .nombre-sistema {
+    font-size: 17px;
+  }
+
+  .btn-accion,
+  .item-sistema,
+  .item-sistema-content {
+    min-height: 50px !important;
+    max-height: 50px !important;
+  }
+
+  .titulo-principal {
+    margin-bottom: 20px;
+  }
+
+  :deep(td),
+  :deep(th) {
+    font-size: 13px;
+    padding: 10px !important;
+  }
 }
 </style>

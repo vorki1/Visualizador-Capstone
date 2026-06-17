@@ -1,6 +1,5 @@
 <template>
   <div class="home-container">
-    <!-- Lado izquierdo -->
     <div class="panel-izquierdo">
       <img
         src="../../assets/cmp-logo.png"
@@ -8,15 +7,35 @@
         class="logo-cmp"
       />
 
-      <button
-        class="btn-acceder"
-        @click="irAAreas"
-      >
-        ACCEDER
-      </button>
+      <div class="login-box">
+        <input
+          v-model="usuario"
+          type="text"
+          placeholder="Usuario"
+          class="input-login"
+        />
+
+        <input
+          v-model="password"
+          type="password"
+          placeholder="Contraseña"
+          class="input-login"
+        />
+
+        <button class="btn-acceder" @click="ingresarAdmin">
+          INGRESAR ADMIN
+        </button>
+
+        <button class="btn-usuario" @click="ingresarUsuario">
+          INGRESO COMO USUARIO
+        </button>
+
+        <p v-if="error" class="error">
+          Usuario o contraseña incorrectos
+        </p>
+      </div>
     </div>
 
-    <!-- Lado derecho -->
     <div class="panel-derecho">
       <img
         src="../../assets/mineria.jpeg"
@@ -28,11 +47,29 @@
 </template>
 
 <script setup lang="ts">
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
 
-const irAAreas = () => {
+const usuario = ref('')
+const password = ref('')
+const error = ref(false)
+
+function ingresarAdmin() {
+  if (
+    usuario.value === 'ADMINCMP' &&
+    password.value === 'CMP1232026.'
+  ) {
+    localStorage.setItem('rol', 'admin')
+    router.push('/areas')
+  } else {
+    error.value = true
+  }
+}
+
+function ingresarUsuario() {
+  localStorage.setItem('rol', 'usuario')
   router.push('/areas')
 }
 </script>
@@ -45,51 +82,72 @@ const irAAreas = () => {
   background: #d9d9d9;
 }
 
-/* PANEL IZQUIERDO */
 .panel-izquierdo {
   width: 50%;
   background: #d9d9d9;
-
   display: flex;
   flex-direction: column;
   align-items: center;
-
   padding-top: 40px;
 }
 
-/* LOGO */
 .logo-cmp {
   width: 80%;
   max-width: 520px;
   object-fit: contain;
 }
 
-/* BOTÓN */
+.login-box {
+  margin-top: 120px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.input-login {
+  width: 260px;
+  height: 42px;
+  padding: 0 12px;
+  border: 2px solid #333;
+  font-size: 15px;
+}
+
+.btn-acceder,
+.btn-usuario {
+  width: 260px;
+  height: 48px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
 .btn-acceder {
-  margin-top: 220px;
-
-  width: 200px;
-  height: 60px;
-
   background: #0057a8;
   color: white;
-
   border: 2px solid black;
-  cursor: pointer;
-
-  font-size: 18px;
-  font-weight: bold;
-  text-decoration: underline;
-  letter-spacing: 1px;
-
-  transition: 0.3s;
 }
 
 .btn-acceder:hover {
   background: #0069c9;
 }
 
-/* PANEL DERECHO */
+.btn-usuario {
+  background: white;
+  color: #0057a8;
+  border: 2px solid #0057a8;
+}
+
+.btn-usuario:hover {
+  background: #eef6ff;
+}
+
+.error {
+  color: #b00020;
+  font-weight: bold;
+}
+
 .panel-derecho {
   width: 50%;
   overflow: hidden;
@@ -101,7 +159,6 @@ const irAAreas = () => {
   object-fit: cover;
 }
 
-/* RESPONSIVE */
 @media (max-width: 900px) {
   .home-container {
     flex-direction: column;
@@ -120,8 +177,8 @@ const irAAreas = () => {
     width: 70%;
   }
 
-  .btn-acceder {
-    margin-top: 100px;
+  .login-box {
+    margin-top: 60px;
   }
 }
 </style>
