@@ -364,7 +364,10 @@ onMounted(async () => {
   try {
     cargandoAlertas.value = true
 
-    sistemas.value = await obtenerSistemas(subarea)
+    sistemas.value = await obtenerSistemas(
+      area,
+      subarea
+    )
 
     // Al iniciar, ningún sistema queda seleccionado
     sistemasSeleccionados.value = []

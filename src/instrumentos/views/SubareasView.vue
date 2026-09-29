@@ -28,7 +28,15 @@
       </v-col>
 
       <!-- CONTENIDO -->
-      <v-col cols="12" md="8" lg="9" class="contenido">
+      <v-col
+        cols="12"
+        md="8"
+        lg="9"
+        class="contenido"
+        :style="{ backgroundImage: `url(${imagenSubareas})` }"
+      >
+        <div class="overlay"></div>
+
         <v-card class="contenido-card" elevation="4" color="white">
           <v-card-text>
             <h2>Área {{ area }}</h2>
@@ -45,7 +53,7 @@ import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import { obtenerSubareas } from '../service/instrumentoService'
-
+import imagenSubareas from '../../assets/imagen-subarea.png'
 const route = useRoute()
 const router = useRouter()
 
@@ -150,16 +158,40 @@ onMounted(async () => {
 .card-subarea:hover {
   opacity: 0.85;
 }
+.overlay {
+  position: absolute;
+  inset: 0;
 
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,0.45) 0%,
+    rgba(255,255,255,0.20) 18%,
+    rgba(255,255,255,0.06) 35%,
+    rgba(255,255,255,0) 50%
+  );
+
+  z-index: 0;
+}
 .contenido {
+  position: relative;
   min-height: 100vh;
   padding: 30px;
-  background: #f8fafc;
+
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  overflow: hidden;
 }
 
 .contenido-card {
+  position: relative;
+  z-index: 1;
+
   border-radius: 16px;
   color: #1e293b !important;
+
+  background: rgba(255,255,255,0.93) !important;
+  backdrop-filter: blur(6px);
 }
 
 .contenido-card h2 {

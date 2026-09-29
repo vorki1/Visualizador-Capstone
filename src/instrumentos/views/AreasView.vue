@@ -13,64 +13,31 @@
         >
           Área {{ area }}
         </v-btn>
-
-        <v-btn
-          v-if="esAdmin"
-          block
-          color="green-darken-2"
-          class="mt-6 boton-menu"
-          @click="irAdmin"
-        >
-          ⚙️ Panel de Administración
-        </v-btn>
-
-        <v-btn
-          block
-          color="grey-darken-3"
-          class="mt-3 boton-menu"
-          @click="cerrarSesion"
-        >
-          Cerrar sesión
-        </v-btn>
       </v-col>
 
-      <v-col cols="12" md="8" lg="9" class="contenido">
+      <v-col
+        cols="12"
+        md="8"
+        lg="9"
+        class="contenido"
+        :style="{ backgroundImage: `url(${imagenArea})` }"
+      >
+        <div class="overlay"></div>
+
         <div class="bienvenida">
           <h2>Visualizador Operacional</h2>
-          <p>Selecciona un área para revisar subáreas, sistemas e instrumentos.</p>
-
-          <p v-if="usuarioActual" class="usuario">
-            Sesión iniciada como:
-            <strong>{{ usuarioActual.nombre }}</strong>
-            <span>({{ usuarioActual.rol }})</span>
+          <p>
+            Selecciona un área para revisar subáreas, sistemas e instrumentos.
           </p>
         </div>
 
         <div class="botones-inferiores">
-          <v-btn
-            color="primary"
-            size="large"
-            class="boton-inferior"
-            @click="irDashboard"
-          >
+          <v-btn color="primary" size="large" class="boton-inferior" @click="irDashboard">
             📊 Dashboard
           </v-btn>
 
-          <v-btn
-            color="primary"
-            size="large"
-            class="boton-inferior"
-            @click="abrirTreemap"
-          >
+          <v-btn color="primary" size="large" class="boton-inferior" @click="abrirTreemap">
             📊 Treemap
-          </v-btn>
-          <v-btn
-            color="primary"
-            size="large"
-            class="boton-inferior"
-            @click="irAlertasGlobales"
-          >
-            🚨 Sábana de Alertas
           </v-btn>
         </div>
       </v-col>
@@ -79,10 +46,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { obtenerAreas } from '../service/instrumentoService'
-
+import imagenArea from '../../assets/imagen-area.png'
 interface Usuario {
   id: number
   username: string
@@ -96,9 +63,6 @@ const router = useRouter()
 const areas = ref<number[]>([])
 const usuarioActual = ref<Usuario | null>(null)
 
-const esAdmin = computed(() => {
-  return usuarioActual.value?.rol === 'admin'
-})
 
 function cargarUsuario() {
   const usuarioStorage = localStorage.getItem('usuario')
@@ -122,20 +86,7 @@ function abrirTreemap() {
 function irDashboard() {
   router.push('/dashboard')
 }
-function irAlertasGlobales() {
-  router.push('/alertas-globales')
-}
-function irAdmin() {
-  router.push('/admin')
-}
 
-function cerrarSesion() {
-  localStorage.removeItem('access_token')
-  localStorage.removeItem('token_type')
-  localStorage.removeItem('usuario')
-  localStorage.removeItem('rol')
-  router.push('/')
-}
 
 onMounted(async () => {
   cargarUsuario()
@@ -200,8 +151,26 @@ onMounted(async () => {
   position: relative;
   min-height: 100vh;
   padding: 40px;
-}
 
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  overflow: hidden;
+}
+.overlay {
+  position: absolute;
+  inset: 0;
+
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,0.70) 0%,
+    rgba(255,255,255,0.40) 20%,
+    rgba(255,255,255,0.12) 40%,
+    rgba(255,255,255,0.00) 65%
+  );
+
+  z-index: 0;
+}
 .bienvenida {
   max-width: 720px;
 }
@@ -216,13 +185,17 @@ onMounted(async () => {
   color: #333;
   font-size: 18px;
 }
-
+.bienvenida,
+.botones-inferiores {
+  position: relative;
+  z-index: 1;
+}
 .usuario {
   margin-top: 20px;
 }
 
 .botones-inferiores {
-  position: fixed;
+  position: absolute;
   right: 35px;
   bottom: 35px;
   display: flex;

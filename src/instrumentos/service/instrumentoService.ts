@@ -1,25 +1,87 @@
 import { api } from './api'
 
-export async function obtenerAreas() {
-    const response = await api.get('/instrumento/areas')
-
-    return response.data.areas
+export interface SistemaSubarea {
+  subarea: string
+  sistemas: string[]
 }
 
-export async function obtenerSubareas(area: number) {
-    const response = await api.get(
-        `/instrumento/areas/${area}/subareas`
-    )
-
-    return response.data.subareas
+export interface AreaJerarquia {
+  area: number
+  subareas: SistemaSubarea[]
 }
 
-export async function obtenerSistemas(subarea: string) {
-    const response = await api.get(
-        `/instrumento/subareas/${subarea}/sistemas`
-    )
+export interface JerarquiaPlanta {
+  jerarquia: AreaJerarquia[]
+}
 
-    return response.data
+let jerarquiaCache: JerarquiaPlanta | null = null
+
+export async function obtenerJerarquia(): Promise<JerarquiaPlanta> {
+
+  if (jerarquiaCache) {
+    return jerarquiaCache
+  }
+
+  const response = await api.get<JerarquiaPlanta>(
+    '/jerarquia.json'
+  )
+
+  jerarquiaCache = response.data
+
+  return response.data
+}
+
+export async function obtenerAreas(): Promise<number[]> {
+  const data = await obtenerJerarquia()
+
+  return data.jerarquia
+  .map(area => area.area)
+  .sort((a, b) => a - b)
+}
+
+export async function obtenerSubareas(
+  areaBuscada: number
+): Promise<string[]> {
+
+  const data = await obtenerJerarquia()
+
+  const area = data.jerarquia.find(
+    a => a.area === areaBuscada
+  )
+
+  if (!area) {
+    return []
+  }
+
+  return area.subareas.map(
+    s => s.subarea
+  )
+}
+
+export async function obtenerSistemas(
+  areaBuscada: number,
+  subareaBuscada: string
+): Promise<string[]> {
+
+  const data = await obtenerJerarquia()
+
+  const area = data.jerarquia.find(
+    a => a.area === areaBuscada
+  )
+
+  if (!area) {
+    return []
+  }
+
+  const subarea = area.subareas.find(
+    s => s.subarea === subareaBuscada
+  )
+
+  if (!subarea) {
+    return []
+  }
+
+  return subarea.sistemas
 }
 
 export async function obtenerInstrumentos(sistema: string) {
@@ -39,11 +101,7 @@ export interface InformacionGeneral {
     TAG_OPC: string
     Unidad_de_Ingenieria: string
 }
-export async function obtenerInfoInstrumento(id: number): Promise<InformacionGeneral> {
-    const response = await api.get(`/instrumento/${id}`)
-    //console.log(response.data.informacion_general[0])
-    return response.data.informacion_general[0]
-}
+
 export async function obtenerHistoricoInstrumento(
     id: number,
     minutos: number
@@ -55,11 +113,11 @@ export async function obtenerHistoricoInstrumento(
     return response.data
 }
 export async function obtenerAlertasInstrumentos() {
-    const response = await api.get(
-        '/alertas/tabla-alertas-instrumentos'
-    )
+  const response = await api.get(
+    '/datos_instrumentos.json'
+  )
 
-    return response.data
+  return response.data.alertas
 }
 
 export async function obtenerAlertas(
@@ -79,6 +137,41 @@ export async function obtenerAlertas(
 }
 
 export async function obtenerEstadisticasAlertas() {
-  const response = await api.get('/alertas/estadisticas')
+  const response = await api.get(
+    '/datos_instrumentos.json'
+  )
+
+  return response.data.estadisticas
+}
+
+export interface InstrumentosJson {
+  instrumentos: InformacionGeneral[]
+}
+
+let instrumentosCache: InstrumentosJson | null = null
+
+export async function obtenerInstrumentosJson(): Promise<InstrumentosJson> {
+  if (instrumentosCache) {
+    return instrumentosCache
+  }
+
+  const response = await api.get<InstrumentosJson>(
+    '/instrumentos.json'
+  )
+
+  instrumentosCache = response.data
+
   return response.data
+}
+
+export async function obtenerInfoInstrumento(
+  id: number
+): Promise<InformacionGeneral | null> {
+  const data = await obtenerInstrumentosJson()
+
+  const instrumento = data.instrumentos.find(
+    item => Number(item.Identificador) === Number(id)
+  )
+
+  return instrumento ?? null
 }

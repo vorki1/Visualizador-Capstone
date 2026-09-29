@@ -205,17 +205,17 @@
             <div class="lista-alertas-estadisticas">
               <div>
                 <span>Preventivas</span>
-                <strong>{{ estadisticas?.alertas?.preventivas ?? 0 }}</strong>
+                <strong>{{ estadisticas?.cantidad_alertas?.preventivas ?? 0 }}</strong>
               </div>
 
               <div>
                 <span>Críticas</span>
-                <strong>{{ estadisticas?.alertas?.criticas ?? 0 }}</strong>
+                <strong>{{ estadisticas?.cantidad_alertas?.criticas ?? 0 }}</strong>
               </div>
 
               <div>
                 <span>Emergencias</span>
-                <strong>{{ estadisticas?.alertas?.emergencias ?? 0 }}</strong>
+                <strong>{{ estadisticas?.cantidad_alertas?.emergencias ?? 0 }}</strong>
               </div>
             </div>
           </v-card-text>

@@ -1,8 +1,7 @@
 <template>
   <v-container fluid class="detalle-instrumento">
     <v-row class="fill-height">
-      <!-- PANEL IZQUIERDO -->
-      <v-col cols="12" lg="4" class="panel-col">
+      <v-col cols="12" lg="6" class="panel-col">
         <v-card class="panel-card" elevation="4" color="white">
           <v-card-text>
             <v-btn
@@ -57,13 +56,17 @@
               </v-table>
             </div>
 
-            <p v-else class="texto-info">Cargando información...</p>
+            <p v-else class="texto-info">
+              No se encontró información para este instrumento.
+            </p>
           </v-card-text>
         </v-card>
+      </v-col>
 
+      <v-col cols="12" lg="6" class="panel-col">
         <v-card class="panel-card panel-alertas" elevation="4" color="white">
           <v-card-title class="titulo-panel">
-            Últimas Fallas
+            Alertas asociadas
           </v-card-title>
 
           <v-card-text>
@@ -74,68 +77,43 @@
                 class="falla-item"
                 elevation="0"
               >
-                <strong>{{ falla.Nombre_TAG }}</strong>
-                falla el
-                <strong>{{ formatearFecha(falla.Fecha_Inicio_Alarma) }}</strong>
+                <div class="falla-header">
+                  <strong>{{ falla.Nombre_TAG }}</strong>
 
-                <br />
+                  <v-chip
+                    size="small"
+                    class="badge-alerta"
+                    :class="claseNivelAlerta(falla.Nivel_Alerta)"
+                  >
+                    {{ falla.Nivel_Alerta }}
+                  </v-chip>
+                </div>
 
-                por
-                <strong>{{ falla.Tipo_Alerta }}</strong>
-                en nivel
+                <p>
+                  <strong>Tipo:</strong>
+                  {{ falla.Tipo_Alerta }}
+                </p>
 
-                <v-chip
-                  size="small"
-                  class="ml-1 badge-alerta"
-                  :class="claseNivelAlerta(falla.Nivel_Alerta)"
-                >
-                  {{ falla.Nivel_Alerta }}
-                </v-chip>
+                <p>
+                  <strong>Inicio:</strong>
+                  {{ formatearFecha(falla.Fecha_Inicio_Alarma) }}
+                </p>
+
+                <p>
+                  <strong>Última actualización:</strong>
+                  {{ formatearFecha(falla.Fecha_Ultima_Actualizacion) }}
+                </p>
+
+                <p>
+                  <strong>Ciclos:</strong>
+                  {{ falla.Ciclos_Alarma }}
+                </p>
               </v-card>
             </div>
 
             <p v-else class="texto-info">
               No hay fallas registradas para este sensor.
             </p>
-          </v-card-text>
-        </v-card>
-      </v-col>
-
-      <!-- PANEL DERECHO -->
-      <v-col cols="12" lg="8" class="panel-col">
-        <v-card class="panel-card panel-grafico" elevation="4" color="white">
-          <v-card-title class="titulo-panel">
-            Histórico
-          </v-card-title>
-
-          <v-card-text class="grafico-card-text">
-            <div class="barra-controles">
-              <span>Ventana:</span>
-
-              <v-select
-                v-model="minutos"
-                :items="opcionesTiempo"
-                item-title="label"
-                item-value="value"
-                variant="outlined"
-                density="compact"
-                class="selector-tiempo"
-                hide-details
-                @update:model-value="cambiarVentanaTiempo"
-              />
-            </div>
-
-            <div class="contenedor-grafico">
-              <Line
-                v-if="historico.length > 0"
-                :data="datosGrafico"
-                :options="opcionesGrafico"
-              />
-
-              <p v-else class="texto-info">
-                No hay datos históricos disponibles
-              </p>
-            </div>
           </v-card-text>
         </v-card>
       </v-col>
@@ -148,42 +126,24 @@ import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import {
-  Chart as ChartJS,
-  LineElement,
-  PointElement,
-  LinearScale,
-  CategoryScale,
-  Tooltip,
-  Legend
-} from 'chart.js'
-
-import { Line } from 'vue-chartjs'
-
-import {
   obtenerInfoInstrumento,
-  obtenerHistoricoInstrumento,
   obtenerAlertasInstrumentos,
   type InformacionGeneral
 } from '../service/instrumentoService'
-
-ChartJS.register(
-  LineElement,
-  PointElement,
-  LinearScale,
-  CategoryScale,
-  Tooltip,
-  Legend
-)
 
 interface AlertaInstrumento {
   Identificador: number
   Nombre_TAG: string
   Descripcion: string
   Unidad_de_Ingenieria: string
+  Area: string
+  Subarea: string
+  Sistema: string
   Tipo_Alerta: string
   Nivel_Alerta: string
   Fecha_Inicio_Alarma: string
   Fecha_Ultima_Actualizacion: string
+  Fecha_Fin: string | null
   Ciclos_Alarma: number
   Alarma_Activa: boolean
 }
@@ -192,16 +152,7 @@ const route = useRoute()
 const router = useRouter()
 
 const instrumento = ref<InformacionGeneral | null>(null)
-const historico = ref<any[]>([])
-const minutos = ref(15)
 const alertas = ref<AlertaInstrumento[]>([])
-
-const opcionesTiempo = [
-  { label: '15 min', value: 15 },
-  { label: '30 min', value: 30 },
-  { label: '1 hora', value: 60 },
-  { label: '6 horas', value: 360 }
-]
 
 const alertasInstrumento = computed(() => {
   if (!instrumento.value) return []
@@ -229,83 +180,12 @@ const fallasSeparadas = computed(() => {
   })
 })
 
-const datosGrafico = computed(() => ({
-  labels: historico.value.map(punto =>
-    new Date(punto.x).toLocaleTimeString('es-CL')
-  ),
-
-  datasets: [
-    {
-      label: instrumento.value?.Nombre_TAG ?? 'Instrumento',
-      data: historico.value.map(punto => punto.y),
-      borderColor: '#005494',
-      backgroundColor: '#005494',
-      borderWidth: 2,
-      pointRadius: 0,
-      pointHoverRadius: 6,
-      tension: 0.25
-    }
-  ]
-}))
-
-const opcionesGrafico = computed(() => ({
-  responsive: true,
-  maintainAspectRatio: false,
-
-  interaction: {
-    mode: 'index' as const,
-    intersect: false
-  },
-
-  plugins: {
-    legend: {
-      display: false
-    },
-
-    tooltip: {
-      enabled: true,
-      callbacks: {
-        title: function (context: any) {
-          return `Hora: ${context[0].label}`
-        },
-
-        label: function (context: any) {
-          const valor = context.parsed.y
-          const unidad = instrumento.value?.Unidad_de_Ingenieria ?? ''
-
-          return `Valor: ${valor} ${unidad}`
-        }
-      }
-    }
-  },
-
-  scales: {
-    x: {
-      title: {
-        display: true,
-        text: 'Tiempo'
-      },
-
-      ticks: {
-        maxRotation: 45,
-        minRotation: 45
-      }
-    },
-
-    y: {
-      title: {
-        display: true,
-        text: instrumento.value?.Unidad_de_Ingenieria ?? 'Valor'
-      }
-    }
-  }
-}))
-
 function volver() {
   router.back()
 }
 
-function formatearFecha(fecha: string) {
+function formatearFecha(fecha: string | null) {
+  if (!fecha) return 'Sin fecha'
   return new Date(fecha).toLocaleString('es-CL')
 }
 
@@ -319,23 +199,12 @@ function claseNivelAlerta(nivel: string) {
   return 'nivel-default'
 }
 
-async function cargarHistorico(id: number) {
-  historico.value = await obtenerHistoricoInstrumento(id, minutos.value)
-}
-
-async function cambiarVentanaTiempo() {
-  const id = Number(route.params.id)
-  await cargarHistorico(id)
-}
-
 onMounted(async () => {
   try {
     const id = Number(route.params.id)
 
     instrumento.value = await obtenerInfoInstrumento(id)
     alertas.value = await obtenerAlertasInstrumentos()
-
-    await cargarHistorico(id)
   } catch (error) {
     console.error('Error cargando datos del instrumento:', error)
   }
@@ -351,8 +220,16 @@ onMounted(async () => {
 
 .panel-col {
   display: flex;
-  flex-direction: column;
-  gap: 20px;
+}
+
+.panel-card {
+  width: 100%;
+  height: calc(100vh - 40px);
+
+  background: white !important;
+  color: #1e293b !important;
+  border: 1px solid #d0d0d0;
+  border-radius: 16px;
 }
 
 .panel-card {
@@ -363,20 +240,7 @@ onMounted(async () => {
 }
 
 .panel-alertas {
-  flex: 1;
-  min-height: 260px;
-  max-height: 420px;
   overflow-y: auto;
-}
-
-.panel-grafico {
-  min-height: calc(100vh - 40px);
-}
-
-.grafico-card-text {
-  height: calc(100vh - 130px);
-  display: flex;
-  flex-direction: column;
 }
 
 .boton-volver {
@@ -435,28 +299,6 @@ onMounted(async () => {
   background: #f7f7f7 !important;
 }
 
-.barra-controles {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 20px;
-  color: #1e293b;
-  font-weight: bold;
-}
-
-.selector-tiempo {
-  max-width: 170px;
-}
-
-.contenedor-grafico {
-  flex: 1;
-  min-height: 360px;
-  background: white;
-  border: 1px solid #d0d0d0;
-  border-radius: 12px;
-  padding: 20px;
-}
-
 .lista-fallas {
   display: flex;
   flex-direction: column;
@@ -471,6 +313,18 @@ onMounted(async () => {
   font-size: 15px;
   line-height: 1.5;
   border-radius: 10px;
+}
+
+.falla-item p {
+  margin: 6px 0 0;
+}
+
+.falla-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 8px;
 }
 
 .badge-alerta {
@@ -500,16 +354,6 @@ onMounted(async () => {
   color: white !important;
 }
 
-@media (max-width: 1280px) {
-  .panel-grafico {
-    min-height: 520px;
-  }
-
-  .grafico-card-text {
-    height: 470px;
-  }
-}
-
 @media (max-width: 600px) {
   .detalle-instrumento {
     padding: 14px;
@@ -519,25 +363,15 @@ onMounted(async () => {
     font-size: 21px;
   }
 
-  .barra-controles {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .selector-tiempo {
-    max-width: 100%;
-    width: 100%;
-  }
-
-  .contenedor-grafico {
-    min-height: 320px;
-    padding: 12px;
-  }
-
   :deep(.tabla-instrumento th),
   :deep(.tabla-instrumento td) {
     font-size: 13px;
     padding: 10px;
+  }
+
+  .falla-header {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
 </style>
