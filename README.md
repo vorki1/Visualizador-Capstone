@@ -1,5 +1,41 @@
-# Vue 3 + TypeScript + Vite
+# Visualizador de Instrumentación Industrial | Capstone Project
 
-This template should help get you started developing with Vue 3 and TypeScript in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+Sistema web interactivo para la visualización, monitoreo y trazabilidad de instrumentación industrial crítica, desarrollado en el marco del proyecto Capstone para faenas mineras (CMP / Cerro Negro Norte).
 
-Learn more about the recommended Project Setup and IDE Support in the [Vue Docs TypeScript Guide](https://vuejs.org/guide/typescript/overview.html#project-setup).
+---
+
+## 📌 Descripción del Proyecto
+
+En operaciones mineras e industriales, la gestión eficiente del mantenimiento depende de contar con datos claros y centralizados sobre el estado y ubicación de cada activo. 
+
+Esta solución permite:
+- Centralizar y explorar la jerarquía técnica de equipos e instrumentos en planta.
+- Monitorear el estado de avance, observaciones operativas y criticidad de los activos.
+- Facilitar la correlación entre componentes principales y periféricos para apoyar la toma de decisiones en terreno y planificación de mantenimiento.
+
+---
+
+## 🛠️ Stack Tecnológico
+
+- **Frontend Framework:** [Vue 3](https://vuejs.org/) (Composition API con `<script setup>`)
+- **Tipado Estático:** [TypeScript](https://www.typescriptlang.org/)
+- **Build Tool & Bundler:** [Vite](https://vitejs.dev/)
+- **UI & Componentes:** Vuetify 3 / Tailwind CSS *(ajustar según tu librería de UI)*
+- **Gestión de Estado:** Pinia *(si aplica)*
+- **Control de Versiones:** Git & GitHub
+
+---
+
+## ✨ Características Principales
+
+- **Explorador Jerárquico de Activos:** Navegación por áreas, equipos e instrumentación asociada.
+- **Filtros Dinámicos:** Búsqueda rápida por tags técnicos, criticidad, tipo de instrumento y estado operacional.
+- **Visualización de Métricas:** Paneles y tablas de datos optimizadas para el seguimiento de avance.
+- **Diseño Responsivo y Modular:** Componentización limpia para facilitar el mantenimiento y la escalabilidad del sistema.
+
+---
+
+
+1. Clonar el repositorio:
+   ```bash
+   git clone [https://github.com/vorki1/visualizador-capstone.git](https://github.com/vorki1/visualizador-capstone.git)
