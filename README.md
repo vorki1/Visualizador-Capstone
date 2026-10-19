@@ -20,8 +20,7 @@ Esta solución permite:
 - **Frontend Framework:** [Vue 3](https://vuejs.org/) (Composition API con `<script setup>`)
 - **Tipado Estático:** [TypeScript](https://www.typescriptlang.org/)
 - **Build Tool & Bundler:** [Vite](https://vitejs.dev/)
-- **UI & Componentes:** Vuetify 3 / Tailwind CSS *(ajustar según tu librería de UI)*
-- **Gestión de Estado:** Pinia *(si aplica)*
+- **UI & Componentes:** Vuetify 3 / Tailwind CSS
 - **Control de Versiones:** Git & GitHub
 
 ---
@@ -35,7 +34,3 @@ Esta solución permite:
 
 ---
 
-
-1. Clonar el repositorio:
-   ```bash
-   git clone [https://github.com/vorki1/visualizador-capstone.git](https://github.com/vorki1/visualizador-capstone.git)
